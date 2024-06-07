@@ -1,4 +1,4 @@
-program MorseRunner;
+program MorseRunnerProto185Testing;
 
 uses
   Forms,

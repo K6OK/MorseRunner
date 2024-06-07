@@ -34,7 +34,7 @@ type
     Filt, Filt2: TMovingAverage;
     Modul: TModulator;
     RitPhase: Single;
-    FStopPressed: boolean;
+    // FStopPressed: boolean;        (K6OK)
 
     destructor Destroy; override;
     procedure Init;
@@ -265,7 +265,7 @@ end;
 }
 procedure TContest.SerialNrModeChanged;
 begin
-  assert(RunMode <> rmStop);
+  assert(Ini.pgmState = psRun);    //(K6OK)
 end;
 
 
@@ -518,7 +518,10 @@ begin
           end;
   //show info
   ShowRate;
-  MainForm.Panel2.Caption := FormatDateTime('hh:nn:ss', BlocksToSeconds(BlockNumber) /  86400);
+
+  //MainForm.Panel2.Caption := FormatDateTime('hh:nn:ss', BlocksToSeconds(BlockNumber) /  86400);
+  //Elapsed time now handled by stopwatch procedure   (K6OK)
+
   if Ini.RunMode = rmPileUp then
     MainForm.Panel4.Caption := Format('Pile-Up:  %d', [DxCount]);
 
@@ -544,28 +547,29 @@ begin
         Stations.AddCaller.ProcessEvent(evMeFinished);
     end;
 
+  // If duration expired or psStop=True, end the simulation
+  //if (BlocksToSeconds(BlockNumber) >= (Duration * 60)) or (Ini.pgmState = psStop) then
 
-  if (BlocksToSeconds(BlockNumber) >= (Duration * 60)) or FStopPressed then
-    begin
+  if ((ElapsedTime * 86400) >= (Duration * 60)) or (Ini.pgmState = psStop) then     //(K6OK)
+      begin
     if RunMode = rmHst then
       begin
-      MainForm.Run(rmStop);
-      FStopPressed := false;
-      MainForm.PopupScoreHst;
+        Ini.pgmState := psStop;
+        MainForm.PopupScoreHst;
       end
-    else if (SimContest = scWpx) and
-      (RunMode in [rmHst, rmWpx]) and
-      not FStopPressed then
+    else if (SimContest = scWpx) and (RunMode in [rmHst, rmWpx]) and
+      (Ini.pgmState <> psStop)  then
       begin
-      MainForm.Run(rmStop);
-      FStopPressed := false;
-      MainForm.PopupScoreWpx;
+        Ini.pgmState := psStop;
+        MainForm.Run(RunMode, psStop);
+        MainForm.PopupScoreWpx;
       end
     else
       begin
-      MainForm.Run(rmStop);
-      FStopPressed := false;
+        Ini.pgmState := psStop;
+        MainForm.Run(RunMode, psStop);
       end;
+
 {
     if (RunMode in [rmWpx, rmHst]) and not FStopPressed
       then begin MainForm.Run(rmStop); MainForm.PopupScore; end

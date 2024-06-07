@@ -25,6 +25,8 @@ type
     procedure Start; override;
     procedure Stop; override;
   public
+    procedure Pause;
+    procedure Resume;
     function PutData(Data: TSingleArray): boolean;
     procedure Purge;
   published
@@ -103,6 +105,20 @@ begin
 end;
 
 
+procedure TAlSoundOut.Pause;
+begin
+  //pause playback
+  rc := waveOutPause(DeviceHandle);
+  CheckErr;
+end;
+
+
+procedure TAlSoundOut.Resume;
+begin
+  //resume playback
+  rc := waveOutRestart(DeviceHandle);
+  CheckErr;
+end;
 
 
 

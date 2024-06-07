@@ -27,7 +27,14 @@ type
   // Adding a contest: Append new TSimContest enum value for each contest.
   TSimContest = (scWpx, scCwt, scFieldDay, scNaQp, scHst, scCQWW, scArrlDx,
                  scSst, scAllJa, scAcag, scIaruHf);
-  TRunMode = (rmStop, rmPileup, rmSingle, rmWpx, rmHst);
+
+  // TPgmState: Track current state of program as running, paused,
+  // running after a pause, or stopped
+  // Replace rmStop and FStopPressed with psStop
+  // Remove rmStop from TRunMode   (K6OK)
+  TPgmState = (psRun, psPause, psRunAfterPause, psStop);
+
+  TRunMode = (rmPileup, rmSingle, rmWpx, rmHst);
 
   // Exchange Field #1 types
   TExchange1Type = (etRST, etOpName, etFdClass);
@@ -248,8 +255,9 @@ var
   GetWpmUsesGaussian: boolean = false;
 
   Duration: integer = 30;
-  RunMode: TRunMode = rmStop;
+  RunMode: TRunMode = rmPileUp;      // was rmStop  (K6OK)
   DefaultRunMode: TRunMode = rmPileUp;
+  pgmState: TPgmState = psStop;      // (K6OK)
   HiScore: integer;
   CompDuration: integer = 60;
 

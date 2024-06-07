@@ -74,8 +74,8 @@ type
     procedure CheckExch2(var ACorrections: TStringList);
   end;
 
-  THisto= class(TObject)
-    private Histo: array[0..47] of integer;
+  THisto= class(TObject)                         // Histogram Chart
+    private Histo: array[0..23] of integer;      // Was 47, reduce to 23 for wider bars (K6OK)
     //private w, h, CallCount: integer;
     private Duration: integer;
     private PaintBoxH: TPaintBox;
@@ -113,6 +113,7 @@ var
   Histo: THisto;
   LogColWidths : Array[0..6] of integer;  // retain original Log column widths
   LogColWidthInitialized : boolean;       // initialize LogColWidths on time only
+
 {$ifdef DEBUG}
   RunUnitTest : boolean;  // run ExtractPrefix unit tests once
 {$endif}
@@ -148,7 +149,7 @@ end;
 
 procedure THisto.Repaint;
 var
-  //Histo: array[0..47] of integer;
+  //Histo: array[0..23] of integer;      // Was 47, reduce to 23 for wider bars (K6OK)
   i: integer;
   x, y, w: integer;
 begin
@@ -160,7 +161,7 @@ begin
   end;
 
   with Self.PaintBoxH, Self.PaintBoxH.Canvas do begin
-    w:= Trunc(ClientWidth / 48);
+    w:= Trunc(ClientWidth / 24);      // Was 48, reduce to 24 for wider bars (K6OK)
     Brush.Color := Color;
     FillRect(RECT(0,0, Width, Height));
     for i:=0 to High(Histo) do begin
@@ -1076,7 +1077,8 @@ var
   i, Cnt: integer;
   T, D: Single;
 begin
-  T := BlocksToSeconds(Tst.BlockNumber) / 86400;
+  //T := BlocksToSeconds(Tst.BlockNumber) / 86400;  //(K6OK)
+  T := ElapsedTime;                                 //(K6OK)
   if T = 0 then Exit;
   D := Min(5/1440, T);
 

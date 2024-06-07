@@ -1,11 +1,11 @@
 object MainForm: TMainForm
-  Left = 238
-  Top = 115
-  BorderIcons = [biSystemMenu]
+  Left = 245
+  Top = 125
+  BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Morse Runner'
-  ClientHeight = 506
-  ClientWidth = 729
+  ClientHeight = 595
+  ClientWidth = 792
   Color = clBtnFace
   Font.Charset = ANSI_CHARSET
   Font.Color = clWindowText
@@ -49,8 +49,7 @@ object MainForm: TMainForm
     000000FF000001FF000083FF0000E7FF0000E7FF0000}
   KeyPreview = True
   Menu = MainMenu1
-  OldCreateOrder = False
-  Position = poScreenCenter
+  Position = poDesigned
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -59,217 +58,240 @@ object MainForm: TMainForm
   OnKeyUp = FormKeyUp
   OnMouseWheelDown = FormMouseWheelDown
   OnMouseWheelUp = FormMouseWheelUp
-  PixelsPerInch = 96
   TextHeight = 15
   object Bevel1: TBevel
     Left = 0
-    Top = 0
-    Width = 729
+    Top = 57
+    Width = 792
     Height = 2
     Align = alTop
+    ExplicitTop = 0
     ExplicitWidth = 700
   end
   object Panel1: TPanel
     Left = 0
-    Top = 371
-    Width = 729
-    Height = 135
+    Top = 450
+    Width = 792
+    Height = 145
     Align = alBottom
     BevelInner = bvRaised
     BevelOuter = bvLowered
     TabOrder = 0
-    object Label1: TLabel
-      Left = 16
-      Top = 12
-      Width = 20
-      Height = 15
-      Caption = 'Call'
-    end
+    ExplicitTop = 449
+    ExplicitWidth = 788
     object SpeedButton4: TSpeedButton
       Tag = 1
       Left = 6
-      Top = 66
-      Width = 65
-      Height = 26
+      Top = 6
+      Width = 85
+      Height = 31
       Caption = 'F1  CQ'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
       OnClick = SendClick
     end
     object SpeedButton5: TSpeedButton
       Tag = 2
-      Left = 73
-      Top = 66
-      Width = 65
-      Height = 26
+      Left = 97
+      Top = 6
+      Width = 85
+      Height = 31
       Caption = 'F2  <exch>'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
       OnClick = SendClick
     end
     object SpeedButton6: TSpeedButton
       Tag = 3
-      Left = 140
-      Top = 66
-      Width = 65
-      Height = 26
+      Left = 188
+      Top = 6
+      Width = 85
+      Height = 31
       Caption = 'F3  TU'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
       OnClick = SendClick
     end
     object SpeedButton7: TSpeedButton
       Tag = 4
-      Left = 207
-      Top = 66
-      Width = 65
-      Height = 26
+      Left = 279
+      Top = 6
+      Width = 85
+      Height = 31
       Caption = 'F4  <my>'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
       OnClick = SendClick
     end
     object SpeedButton8: TSpeedButton
       Tag = 5
       Left = 6
-      Top = 94
-      Width = 65
-      Height = 26
+      Top = 46
+      Width = 85
+      Height = 31
       Caption = 'F5  <his>'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
       OnClick = SendClick
     end
     object SpeedButton9: TSpeedButton
       Tag = 6
-      Left = 73
-      Top = 94
-      Width = 65
-      Height = 26
+      Left = 97
+      Top = 46
+      Width = 85
+      Height = 31
       Caption = 'F6  B4'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
       OnClick = SendClick
     end
     object SpeedButton10: TSpeedButton
       Tag = 7
-      Left = 140
-      Top = 94
-      Width = 65
-      Height = 26
+      Left = 188
+      Top = 46
+      Width = 85
+      Height = 31
       Caption = 'F7  ?'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
       OnClick = SendClick
     end
     object SpeedButton11: TSpeedButton
       Tag = 8
-      Left = 207
-      Top = 94
-      Width = 65
-      Height = 26
+      Left = 279
+      Top = 46
+      Width = 85
+      Height = 31
       Caption = 'F8  NIL'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
       OnClick = SendClick
     end
-    object Label2: TLabel
-      Left = 140
-      Top = 12
-      Width = 19
-      Height = 15
-      Caption = 'RST'
-    end
-    object Label3: TLabel
-      Left = 224
-      Top = 12
-      Width = 16
-      Height = 15
-      Caption = 'Nr.'
-    end
-    object Bevel2: TBevel
-      Left = 277
-      Top = 6
-      Width = 2
-      Height = 123
-    end
-    object Edit1: TEdit
-      Left = 12
-      Top = 33
-      Width = 118
-      Height = 27
-      AutoSelect = False
-      CharCase = ecUpperCase
+    object SpeedButton1: TSpeedButton
+      Tag = 5
+      Left = 6
+      Top = 84
+      Width = 85
+      Height = 31
+      Caption = 'F9  ---'
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
-      Font.Height = -16
-      Font.Name = 'Consolas'
-      Font.Style = [fsBold]
-      MaxLength = 12
-      ParentFont = False
-      TabOrder = 0
-      OnChange = Edit1Change
-      OnEnter = Edit1Enter
-      OnKeyPress = Edit1KeyPress
-    end
-    object Edit2: TEdit
-      Left = 136
-      Top = 33
-      Width = 77
-      Height = 27
-      AutoSelect = False
-      CharCase = ecUpperCase
-      Font.Charset = ANSI_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -16
-      Font.Name = 'Consolas'
-      Font.Style = [fsBold]
-      MaxLength = 10
-      ParentFont = False
-      TabOrder = 1
-      OnEnter = Edit2Enter
-      OnKeyPress = Edit2KeyPress
-    end
-    object Edit3: TEdit
-      Left = 219
-      Top = 33
-      Width = 45
-      Height = 27
-      AutoSelect = False
-      CharCase = ecUpperCase
-      Font.Charset = ANSI_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -16
-      Font.Name = 'Consolas'
-      Font.Style = [fsBold]
-      MaxLength = 4
-      ParentFont = False
-      TabOrder = 2
-      OnEnter = Edit3Enter
-      OnKeyPress = Edit3KeyPress
-    end
-    object Panel2: TPanel
-      Left = 522
-      Top = 5
-      Width = 191
-      Height = 33
-      BevelOuter = bvLowered
-      Caption = '00:00:00'
-      Color = clBackground
-      Font.Charset = ANSI_CHARSET
-      Font.Color = 14151712
-      Font.Height = -24
-      Font.Name = 'Arial'
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
       Font.Style = []
-      ParentBackground = False
       ParentFont = False
-      TabOrder = 3
+      OnClick = SendClick
+    end
+    object SpeedButton2: TSpeedButton
+      Tag = 6
+      Left = 97
+      Top = 84
+      Width = 85
+      Height = 31
+      Caption = 'F10  ---'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+      OnClick = SendClick
+    end
+    object SpeedButton3: TSpeedButton
+      Tag = 7
+      Left = 188
+      Top = 84
+      Width = 85
+      Height = 31
+      Caption = 'F11 ---'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+      OnClick = SendClick
+    end
+    object SpeedButton12: TSpeedButton
+      Tag = 8
+      Left = 279
+      Top = 84
+      Width = 85
+      Height = 31
+      Caption = 'F12  ---'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+      OnClick = SendClick
+    end
+    object Label23: TLabel
+      Left = 426
+      Top = 123
+      Width = 123
+      Height = 13
+      Caption = 'Rate Chart (QSOs/5 min)'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
     end
     object Panel3: TPanel
-      Left = 292
+      Left = 370
       Top = 45
       Width = 225
-      Height = 67
+      Height = 72
+      Align = alCustom
       BevelOuter = bvLowered
-      TabOrder = 4
+      TabOrder = 1
       object PaintBox1: TPaintBox
         Left = 1
-        Top = 1
+        Top = 0
         Width = 223
-        Height = 65
-        Align = alClient
+        Height = 70
         Color = clInfoBk
         ParentColor = False
         OnPaint = PaintBox1Paint
-        ExplicitHeight = 62
       end
     end
     object Panel4: TPanel
-      Left = 292
+      Left = 370
       Top = 6
       Width = 114
       Height = 33
@@ -281,58 +303,31 @@ object MainForm: TMainForm
       Font.Style = [fsBold]
       ParentBackground = False
       ParentFont = False
-      TabOrder = 5
+      TabOrder = 2
     end
     object Panel7: TPanel
-      Left = 412
+      Left = 492
       Top = 6
       Width = 104
       Height = 33
       BevelOuter = bvLowered
-      TabOrder = 6
-    end
-    object Panel8: TPanel
-      Left = 292
-      Top = 119
-      Width = 225
-      Height = 10
-      Cursor = crHandPoint
-      Hint = 'RIT -- Use Up/Down keys or Mouse Wheel; Hold Control key for BW.'
-      BevelOuter = bvLowered
-      ParentShowHint = False
-      ShowHint = True
-      TabOrder = 7
-      OnMouseDown = Panel8MouseDown
-      object Shape2: TShape
-        Left = 81
-        Top = 1
-        Width = 32
-        Height = 7
-        Cursor = crHandPoint
-        Brush.Color = 12902431
-        OnMouseDown = Shape2MouseDown
-      end
+      TabOrder = 0
     end
     object Panel11: TPanel
-      Left = 529
+      Left = 599
       Top = 44
       Width = 191
-      Height = 85
+      Height = 89
       BevelOuter = bvLowered
-      Caption = '0'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -19
-      Font.Name = 'MS Sans Serif'
-      Font.Style = [fsBold]
-      ParentFont = False
-      TabOrder = 8
+      Caption = 'Panel11'
+      TabOrder = 3
       object ListView1: TListView
         Left = 1
         Top = 1
         Width = 189
-        Height = 83
+        Height = 87
         Align = alClient
+        BevelOuter = bvNone
         BorderStyle = bsNone
         Columns = <
           item
@@ -344,7 +339,6 @@ object MainForm: TMainForm
             Width = 70
           end
           item
-            Alignment = taCenter
             Caption = 'Verified'
             Width = 70
           end>
@@ -366,37 +360,50 @@ object MainForm: TMainForm
         TabOrder = 0
         TabStop = False
         ViewStyle = vsReport
+        ExplicitTop = -27
       end
     end
-  end
-  object Panel5: TPanel
-    Left = 0
-    Top = 361
-    Width = 729
-    Height = 10
-    Align = alBottom
-    BevelOuter = bvNone
-    TabOrder = 1
+    object Panel2: TPanel
+      Left = 616
+      Top = 6
+      Width = 164
+      Height = 30
+      BevelOuter = bvLowered
+      Caption = '00:00:00'
+      Color = clBackground
+      Font.Charset = ANSI_CHARSET
+      Font.Color = 14151712
+      Font.Height = -21
+      Font.Name = 'Arial'
+      Font.Style = []
+      ParentBackground = False
+      ParentFont = False
+      TabOrder = 4
+    end
   end
   object Panel6: TPanel
     Left = 0
-    Top = 2
-    Width = 517
-    Height = 359
+    Top = 59
+    Width = 580
+    Height = 305
     Align = alClient
     BevelOuter = bvNone
     BorderStyle = bsSingle
-    TabOrder = 2
+    TabOrder = 1
+    ExplicitWidth = 576
+    ExplicitHeight = 304
     object Shape1: TShape
       Left = 0
       Top = 54
-      Width = 513
-      Height = 238
+      Width = 576
+      Height = 184
       Align = alClient
       Brush.Color = 16711401
       Pen.Style = psClear
-      ExplicitLeft = 2
+      ExplicitLeft = 3
       ExplicitTop = 48
+      ExplicitWidth = 513
+      ExplicitHeight = 137
     end
     object Label14: TLabel
       Left = 100
@@ -442,7 +449,7 @@ object MainForm: TMainForm
     end
     object Label15: TLabel
       Left = 106
-      Top = 170
+      Top = 150
       Width = 315
       Height = 15
       Caption = 'Copyright '#169'2004-2016 Alex Shovkoplyas, VE3NEA'
@@ -469,8 +476,8 @@ object MainForm: TMainForm
       Transparent = True
     end
     object Label19: TLabel
-      Left = 28
-      Top = 234
+      Left = 55
+      Top = 210
       Width = 448
       Height = 15
       Caption = 'Copyright '#169'2022-2024 Morse Runner Community Edition Contributors'
@@ -498,7 +505,7 @@ object MainForm: TMainForm
     end
     object Label21: TLabel
       Left = 142
-      Top = 191
+      Top = 171
       Width = 238
       Height = 15
       Caption = 'http://www.dxatlas.com/MorseRunner'
@@ -512,7 +519,7 @@ object MainForm: TMainForm
     end
     object Label22: TLabel
       Left = 126
-      Top = 255
+      Top = 190
       Width = 280
       Height = 15
       Caption = 'https://www.github.com/w7sst/MorseRunner'
@@ -526,8 +533,8 @@ object MainForm: TMainForm
     end
     object RichEdit1: TRichEdit
       Left = 0
-      Top = 314
-      Width = 513
+      Top = 260
+      Width = 576
       Height = 41
       TabStop = False
       Align = alBottom
@@ -542,12 +549,13 @@ object MainForm: TMainForm
       ScrollBars = ssVertical
       TabOrder = 1
       Visible = False
-      Zoom = 100
+      ExplicitTop = 259
+      ExplicitWidth = 572
     end
     object ListView2: TListView
       Left = 0
       Top = 0
-      Width = 513
+      Width = 576
       Height = 54
       Align = alTop
       BevelInner = bvNone
@@ -599,11 +607,12 @@ object MainForm: TMainForm
       ViewStyle = vsReport
       OnCustomDrawSubItem = ListView2CustomDrawSubItem
       OnSelectItem = ListView2SelectItem
+      ExplicitWidth = 572
     end
     object sbar: TPanel
       Left = 0
-      Top = 292
-      Width = 513
+      Top = 238
+      Width = 576
       Height = 22
       Align = alBottom
       Alignment = taLeftJustify
@@ -611,19 +620,110 @@ object MainForm: TMainForm
       ParentBackground = False
       TabOrder = 2
       Visible = False
+      ExplicitTop = 237
+      ExplicitWidth = 572
+      object labelStatus: TLabel
+        Left = 492
+        Top = 1
+        Width = 82
+        Height = 13
+        Alignment = taRightJustify
+        Caption = 'Status: Stopped'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Segoe UI'
+        Font.Style = []
+        ParentFont = False
+      end
     end
   end
   object Panel9: TPanel
-    Left = 517
-    Top = 2
+    Left = 580
+    Top = 59
     Width = 212
-    Height = 359
+    Height = 305
     Align = alRight
     BevelOuter = bvNone
-    TabOrder = 3
+    TabOrder = 2
+    ExplicitLeft = 576
+    ExplicitHeight = 304
+    object Label24: TLabel
+      Left = 73
+      Top = 260
+      Width = 16
+      Height = 13
+      Caption = 'RIT'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+    end
+    object Label27: TLabel
+      Left = 63
+      Top = 286
+      Width = 38
+      Height = 15
+      Alignment = taCenter
+      AutoSize = False
+      Caption = '0'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+    end
+    object spdbtnRightRIT: TSpeedButton
+      Left = 130
+      Top = 270
+      Width = 20
+      Height = 20
+      Caption = '4'
+      Flat = True
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -21
+      Font.Name = 'Webdings'
+      Font.Style = [fsBold]
+      Layout = blGlyphRight
+      ParentFont = False
+      OnClick = spdbtnRightRITClick
+    end
+    object spdbtnLeftRIT: TSpeedButton
+      Left = 10
+      Top = 270
+      Width = 20
+      Height = 20
+      Caption = '3'
+      Flat = True
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -21
+      Font.Name = 'Webdings'
+      Font.Style = [fsBold]
+      ParentFont = False
+      OnClick = spdbtnLeftRITClick
+    end
+    object spdbtnResetRIT: TSpeedButton
+      Left = 160
+      Top = 270
+      Width = 33
+      Height = 20
+      Caption = 'Reset'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+      OnClick = spdbtnResetRITClick
+    end
     object GroupBox3: TGroupBox
       Left = 6
-      Top = 238
+      Top = 173
       Width = 194
       Height = 84
       Caption = ' Band Conditions '
@@ -701,10 +801,10 @@ object MainForm: TMainForm
     end
     object GroupBox1: TGroupBox
       Left = 6
-      Top = 81
+      Top = 6
       Width = 194
       Height = 155
-      Caption = ' Station '
+      Caption = ' My Station '
       TabOrder = 1
       object Label4: TLabel
         Left = 12
@@ -853,106 +953,412 @@ object MainForm: TMainForm
           '600 Hz')
       end
     end
-    object Panel10: TPanel
-      Left = 0
-      Top = 322
-      Width = 212
-      Height = 37
-      Align = alBottom
-      BevelOuter = bvNone
+    object Panel8: TPanel
+      Left = 30
+      Top = 276
+      Width = 100
+      Height = 10
+      Cursor = crHandPoint
+      Hint = 'RIT -- Use Up/Down keys or Mouse Wheel; Hold Control key for BW.'
+      BevelOuter = bvLowered
+      ParentShowHint = False
+      ShowHint = True
       TabOrder = 2
-      object Label8: TLabel
-        Left = 179
-        Top = 13
-        Width = 24
-        Height = 15
-        Caption = 'min.'
-      end
-      object Label10: TLabel
-        Left = 107
-        Top = 13
-        Width = 15
-        Height = 15
-        Caption = 'for'
-      end
-      object SpinEdit2: TSpinEdit
-        Left = 128
-        Top = 10
-        Width = 45
-        Height = 24
-        TabStop = False
-        MaxLength = 2
-        MaxValue = 240
-        MinValue = 1
-        TabOrder = 0
-        Value = 30
-        OnChange = SpinEdit2Change
-      end
-      object ToolBar1: TToolBar
-        Left = 6
-        Top = 6
-        Width = 97
-        Height = 29
-        Align = alNone
-        ButtonHeight = 30
-        ButtonWidth = 72
-        Caption = 'ToolBar1'
-        Flat = False
-        Images = ImageList1
-        Indent = 3
-        List = True
-        ShowCaptions = True
-        TabOrder = 1
-        object ToolButton1: TToolButton
-          Tag = 1
-          Left = 3
-          Top = 0
-          AllowAllUp = True
-          AutoSize = True
-          Caption = '   Run   '
-          DropdownMenu = PopupMenu1
-          Grouped = True
-          ImageIndex = 0
-          Style = tbsDropDown
-          OnClick = RunBtnClick
-        end
+      OnMouseDown = Panel8MouseDown
+      object Shape2: TShape
+        Left = 40
+        Top = 2
+        Width = 20
+        Height = 7
+        Cursor = crHandPoint
+        Brush.Color = 12902431
+        OnMouseDown = Shape2MouseDown
       end
     end
-    object ContestGroup: TGroupBox
-      Left = 6
-      Top = 6
-      Width = 195
-      Height = 74
+  end
+  object Panel12: TPanel
+    Left = 0
+    Top = 374
+    Width = 792
+    Height = 76
+    Align = alBottom
+    BevelInner = bvRaised
+    BevelOuter = bvLowered
+    TabOrder = 3
+    ExplicitTop = 373
+    ExplicitWidth = 788
+    object Label1: TLabel
+      Left = 74
+      Top = 7
+      Width = 21
+      Height = 17
+      Caption = 'Call'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+    end
+    object Label2: TLabel
+      Left = 235
+      Top = 7
+      Width = 22
+      Height = 17
+      Caption = 'RST'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+    end
+    object Label3: TLabel
+      Left = 394
+      Top = 7
+      Width = 18
+      Height = 17
+      Caption = 'Nr.'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+    end
+    object Label25: TLabel
+      Left = 651
+      Top = 11
+      Width = 21
+      Height = 15
+      Caption = 'Run'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+    end
+    object Label26: TLabel
+      Left = 679
+      Top = 11
+      Width = 31
+      Height = 15
+      Caption = 'Pause'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+    end
+    object Label28: TLabel
+      Left = 717
+      Top = 11
+      Width = 24
+      Height = 15
+      Caption = 'Stop'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+    end
+    object spdbtnRun: TSpeedButton
+      Left = 641
+      Top = 27
+      Width = 32
+      Height = 32
+      Caption = '4'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clGreen
+      Font.Height = -29
+      Font.Name = 'Webdings'
+      Font.Style = []
+      ParentFont = False
+      OnClick = spdbtnRunClick
+    end
+    object spdbtnPause: TSpeedButton
+      Left = 679
+      Top = 27
+      Width = 32
+      Height = 32
+      Caption = ';'
+      Enabled = False
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -27
+      Font.Name = 'Webdings'
+      Font.Style = []
+      ParentFont = False
+      OnClick = spdbtnPauseClick
+    end
+    object spdbtnStop: TSpeedButton
+      Left = 715
+      Top = 27
+      Width = 34
+      Height = 32
+      Caption = '<'
+      Enabled = False
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clRed
+      Font.Height = -27
+      Font.Name = 'Webdings'
+      Font.Style = []
+      ParentFont = False
+      OnClick = spdbtnStopClick
+    end
+    object Edit1: TEdit
+      Left = 74
+      Top = 28
+      Width = 150
+      Height = 32
+      AutoSelect = False
+      CharCase = ecUpperCase
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -21
+      Font.Name = 'Consolas'
+      Font.Style = [fsBold]
+      MaxLength = 12
+      ParentFont = False
+      TabOrder = 0
+      OnChange = Edit1Change
+      OnEnter = Edit1Enter
+      OnKeyPress = Edit1KeyPress
+    end
+    object Edit2: TEdit
+      Left = 230
+      Top = 28
+      Width = 150
+      Height = 32
+      AutoSelect = False
+      CharCase = ecUpperCase
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -21
+      Font.Name = 'Consolas'
+      Font.Style = [fsBold]
+      MaxLength = 10
+      ParentFont = False
+      TabOrder = 1
+      OnEnter = Edit2Enter
+      OnKeyPress = Edit2KeyPress
+    end
+    object Edit3: TEdit
+      Left = 386
+      Top = 28
+      Width = 150
+      Height = 32
+      AutoSelect = False
+      CharCase = ecUpperCase
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -21
+      Font.Name = 'Consolas'
+      Font.Style = [fsBold]
+      MaxLength = 4
+      ParentFont = False
+      TabOrder = 2
+      OnEnter = Edit3Enter
+      OnKeyPress = Edit3KeyPress
+    end
+  end
+  object Panel5: TPanel
+    Left = 0
+    Top = 364
+    Width = 792
+    Height = 10
+    Align = alBottom
+    BevelOuter = bvNone
+    TabOrder = 4
+    ExplicitTop = 363
+    ExplicitWidth = 788
+  end
+  object panelTopControls: TPanel
+    Left = 0
+    Top = 0
+    Width = 792
+    Height = 57
+    Align = alTop
+    BevelOuter = bvNone
+    TabOrder = 5
+    ExplicitWidth = 788
+    object Label10: TLabel
+      Left = 262
+      Top = 8
+      Width = 41
+      Height = 15
       Caption = 'Contest'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+    end
+    object Label17: TLabel
+      Left = 403
+      Top = 8
+      Width = 51
+      Height = 15
+      Caption = 'Exchange'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+    end
+    object Label29: TLabel
+      Left = 523
+      Top = 8
+      Width = 31
+      Height = 15
+      Caption = 'Mode'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+    end
+    object Label8: TLabel
+      Left = 665
+      Top = 32
+      Width = 21
+      Height = 15
+      Caption = 'min'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+    end
+    object Label30: TLabel
+      Left = 613
+      Top = 8
+      Width = 46
+      Height = 15
+      Caption = 'Duration'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+    end
+    object Label31: TLabel
+      Left = 87
+      Top = 10
+      Width = 40
+      Height = 15
+      Caption = 'Activity'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+    end
+    object SimContestCombo: TComboBox
+      Left = 195
+      Top = 26
+      Width = 169
+      Height = 25
+      Style = csDropDownList
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 0
+      TabStop = False
+      OnChange = SimContestComboChange
+    end
+    object ExchangeEdit: TEdit
+      Left = 370
+      Top = 27
+      Width = 116
+      Height = 25
+      TabStop = False
+      CharCase = ecUpperCase
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 1
+      Text = '3A ON'
+      OnChange = ExchangeEditChange
+      OnExit = ExchangeEditExit
+    end
+    object comboMode: TComboBox
+      Left = 492
+      Top = 26
+      Width = 115
+      Height = 25
+      Style = csDropDownList
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ItemIndex = 0
+      ParentFont = False
+      TabOrder = 2
+      TabStop = False
+      Text = 'Pile-Up'
+      OnSelect = comboModeSelect
+      Items.Strings = (
+        'Pile-Up'
+        'Single Calls'
+        'WPX Competition'
+        'HST Competition')
+    end
+    object SpinEdit2: TSpinEdit
+      Left = 613
+      Top = 26
+      Width = 45
+      Height = 24
+      TabStop = False
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      MaxLength = 2
+      MaxValue = 240
+      MinValue = 1
+      ParentFont = False
       TabOrder = 3
-      object Label17: TLabel
-        Left = 12
-        Top = 47
-        Width = 51
-        Height = 15
-        Caption = 'Exchange'
-      end
-      object SimContestCombo: TComboBox
-        Left = 23
-        Top = 18
-        Width = 169
-        Height = 23
-        Style = csDropDownList
-        TabOrder = 0
-        TabStop = False
-        OnChange = SimContestComboChange
-      end
-      object ExchangeEdit: TEdit
-        Left = 76
-        Top = 44
-        Width = 116
-        Height = 23
-        CharCase = ecUpperCase
-        TabOrder = 1
-        Text = '3A ON'
-        OnChange = ExchangeEditChange
-        OnExit = ExchangeEditExit
-      end
+      Value = 30
+      OnChange = SpinEdit2Change
+    end
+    object comboActivity: TComboBox
+      Left = 20
+      Top = 26
+      Width = 169
+      Height = 25
+      Style = csDropDownList
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ItemIndex = 0
+      ParentFont = False
+      TabOrder = 4
+      TabStop = False
+      Text = 'Practice'
+      Items.Strings = (
+        'Practice'
+        'Training'
+        'Competition')
     end
   end
   object AlSoundOut1: TAlSoundOut
@@ -1990,5 +2396,12 @@ object MainForm: TMainForm
   object AlWavFile1: TAlWavFile
     Left = 384
     Top = 204
+  end
+  object Timer1: TTimer
+    Enabled = False
+    Interval = 250
+    OnTimer = Timer1Timer
+    Left = 440
+    Top = 147
   end
 end

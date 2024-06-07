@@ -21,7 +21,7 @@ uses
 
 const
   WM_TBDOWN = WM_USER+1;
-  sVersion: String = '1.84';  { Sets version strings in UI panel. }
+  sVersion: String = '1.85p';  { Sets version strings in UI panel. }
 
 type
 
@@ -89,7 +89,6 @@ type
     AGN1: TMenuItem;
     Bevel1: TBevel;
     Panel1: TPanel;
-    Label1: TLabel;
     SpeedButton4: TSpeedButton;
     SpeedButton5: TSpeedButton;
     SpeedButton6: TSpeedButton;
@@ -98,13 +97,6 @@ type
     SpeedButton9: TSpeedButton;
     SpeedButton10: TSpeedButton;
     SpeedButton11: TSpeedButton;
-    Edit1: TEdit;
-    Label2: TLabel;
-    Edit2: TEdit;
-    Label3: TLabel;
-    Edit3: TEdit;
-    Bevel2: TBevel;
-    Panel2: TPanel;
     Panel3: TPanel;
     Panel4: TPanel;
     Help1: TMenuItem;
@@ -112,7 +104,6 @@ type
     About1: TMenuItem;
     N2: TMenuItem;
     PaintBox1: TPaintBox;
-    Panel5: TPanel;
     Exit1: TMenuItem;
     Panel6: TPanel;
     RichEdit1: TRichEdit;
@@ -138,8 +129,6 @@ type
     ViewScoreTable1: TMenuItem;
     Panel7: TPanel;
     Label16: TLabel;
-    Panel8: TPanel;
-    Shape2: TShape;
     AlWavFile1: TAlWavFile;
     Panel9: TPanel;
     GroupBox3: TGroupBox;
@@ -161,12 +150,6 @@ type
     CheckBox1: TCheckBox;
     ComboBox1: TComboBox;
     ComboBox2: TComboBox;
-    Panel10: TPanel;
-    Label8: TLabel;
-    SpinEdit2: TSpinEdit;
-    ToolBar1: TToolBar;
-    ToolButton1: TToolButton;
-    Label10: TLabel;
     VolumeSlider1: TVolumeSlider;
     Label18: TLabel;
     WebPage1: TMenuItem;
@@ -246,8 +229,6 @@ type
     PlayRecordedAudio1: TMenuItem;
     N8: TMenuItem;
     AudioRecordingEnabled1: TMenuItem;
-    Panel11: TPanel;
-    ListView1: TListView;
     Operator1: TMenuItem;
     N9: TMenuItem;
     ListView2: TListView;
@@ -275,14 +256,53 @@ type
     CWMaxRxSpeedSet8: TMenuItem;
     CWMaxRxSpeedSet10: TMenuItem;
     NRQM: TMenuItem;
-    ContestGroup: TGroupBox;
-    SimContestCombo: TComboBox;
-    Label17: TLabel;
-    ExchangeEdit: TEdit;
     Label19: TLabel;
     Label20: TLabel;
     Label21: TLabel;
     Label22: TLabel;
+    Panel11: TPanel;
+    ListView1: TListView;
+    Panel12: TPanel;
+    Panel5: TPanel;
+    Label1: TLabel;
+    Edit1: TEdit;
+    Label2: TLabel;
+    Edit2: TEdit;
+    Label3: TLabel;
+    Edit3: TEdit;
+    Label25: TLabel;
+    Label26: TLabel;
+    Label28: TLabel;
+    spdbtnRun: TSpeedButton;
+    spdbtnPause: TSpeedButton;
+    spdbtnStop: TSpeedButton;
+    panelTopControls: TPanel;
+    Label10: TLabel;
+    SimContestCombo: TComboBox;
+    ExchangeEdit: TEdit;
+    Label17: TLabel;
+    Label29: TLabel;
+    comboMode: TComboBox;
+    SpinEdit2: TSpinEdit;
+    Label8: TLabel;
+    Label30: TLabel;
+    Panel2: TPanel;
+    SpeedButton1: TSpeedButton;
+    SpeedButton2: TSpeedButton;
+    SpeedButton3: TSpeedButton;
+    SpeedButton12: TSpeedButton;
+    Panel8: TPanel;
+    Shape2: TShape;
+    Label24: TLabel;
+    Label27: TLabel;
+    spdbtnRightRIT: TSpeedButton;
+    spdbtnLeftRIT: TSpeedButton;
+    spdbtnResetRIT: TSpeedButton;
+    labelStatus: TLabel;
+    Label23: TLabel;
+    Timer1: TTimer;
+    comboActivity: TComboBox;
+    Label31: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure AlSoundOut1BufAvailable(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -314,7 +334,6 @@ type
     procedure Readme1Click(Sender: TObject);
     procedure Edit1Change(Sender: TObject);
     procedure RunMNUClick(Sender: TObject);
-    procedure RunBtnClick(Sender: TObject);
     procedure ViewScoreBoardMNUClick(Sender: TObject);
     procedure ViewScoreTable1Click(Sender: TObject);
     procedure FormKeyUp(Sender: TObject; var Key: Word;
@@ -360,6 +379,14 @@ type
     procedure Edit4Exit(Sender: TObject);
     procedure SpinEdit1Exit(Sender: TObject);
     procedure Edit3Enter(Sender: TObject);
+    procedure spdbtnStopClick(Sender: TObject);
+    procedure comboModeSelect(Sender: TObject);
+    procedure spdbtnResetRITClick(Sender: TObject);
+    procedure spdbtnRightRITClick(Sender: TObject);
+    procedure spdbtnLeftRITClick(Sender: TObject);
+    procedure spdbtnRunClick(Sender: TObject);
+    procedure spdbtnPauseClick(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject); // (K6OK)
 
   private
     MustAdvance: boolean;       // Controls when Exchange fields advance
@@ -367,6 +394,12 @@ type
     UserExchangeDirty: boolean; // SetMyExchange is called after exchange edits
     CWSpeedDirty: boolean;      // SetWpm is called after CW Speed edits
     RitLocal: integer;          // tracks incremented RIT Value
+
+    PauseStartTime: TDateTime;
+    PausedTime: TDateTime;
+
+
+
     function CreateContest(AContestId : TSimContest) : TContest;
     procedure ConfigureExchangeFields;
     procedure SetMyExch1(const AExchType: TExchange1Type; const Avalue: string);
@@ -377,12 +410,13 @@ type
     procedure SendMsg(AMsg: TStationMessage);
     procedure ProcessEnter;
     procedure EnableCtl(Ctl: TWinControl; AEnable: boolean);
-    procedure WmTbDown(var Msg: TMessage); message WM_TBDOWN;
-    procedure SetToolbuttonDown(Toolbutton: TToolbutton; ADown: boolean);
     procedure IncRit(dF: integer);
     procedure UpdateRitIndicator;
     procedure DecSpeed;
     procedure IncSpeed;
+    procedure SpdBtnVisibility(valu: integer);  // (K6OK)
+
+
   public
     CompetitionMode: boolean;
 
@@ -393,7 +427,7 @@ type
     // function. See TArrlDx.GetExchangeTypes() for additional information.
     RecvExchTypes: TExchTypes;
 
-    procedure Run(Value: TRunMode);
+    procedure Run(Value: TRunMode; valuState: TPgmState);  // (K6OK)
     procedure WipeBoxes;
     procedure PopupScoreWpx;
     procedure PopupScoreHst;
@@ -416,7 +450,6 @@ type
     procedure UpdCWMaxRxSpeed(Maxspd: integer);
     procedure ClientHTTP1Redirect(Sender: TObject; var dest: string;
       var NumRedirect: Integer; var Handled: Boolean; var VMethod: string);
-
   end;
 
 function ToStr(const val : TExchange1Type): string; overload;
@@ -434,6 +467,10 @@ var
   BDebugExchSettings: boolean;    // display parsed Exchange field settings
   BDebugCwDecoder: boolean;       // enables CW stream to status bar
   BDebugGhosting: boolean;        // enabled DxStation ghosting issues
+
+  StartTime: TDateTime;           // (K6OK)
+  StopTime: TDateTime;
+  ElapsedTime: TDateTime;
 
 implementation
 
@@ -488,6 +525,7 @@ begin
   // load DXCC support
   gDXCCList := TDXCC.Create;
 
+  // Create the rate histogram
   Histo:= THisto.Create(PaintBox1);
 
   AlSoundOut1.BufCount := 4;
@@ -508,6 +546,9 @@ begin
 
   // create a derived TContest of the appropriate type
   SetContest(Ini.SimContest);
+
+  // start the TTimer for timekeeping (K6OK)
+  Timer1.Enabled := True;
 end;
 
 
@@ -518,6 +559,7 @@ begin
   Histo.Free;
   Tst.Free;
   DestroyKeyer;
+  Timer1.Free;    // (K6OK)
 end;
 
 
@@ -915,7 +957,7 @@ begin
     begin
       // exit CW Speed Control
       SpinEdit1Exit(ActiveControl);
-      if RunMode = rmStop then
+      if Ini.pgmState = psStop then
         Exit;
     end;
   MustAdvance := false;
@@ -939,7 +981,7 @@ begin
     SendMsg(msgCq);
     // special case - Cursor is in either CW Speed or Activity Spin Control
     // when Enter key is pushed. Move cursor to the next QSO Exchange field.
-    if (RunMode <> rmStop) and
+    if (Ini.pgmState = psRun) and
           ((ActiveControl = SpinEdit1) or (ActiveControl = SpinEdit3)) then
       MustAdvance := true;
     Exit;
@@ -1205,11 +1247,12 @@ begin
   else
     DefaultRunMode := rmPileUp;
 
-  assert(PopupMenu1.Items[0].Tag = Ord(rmPileUp));
-  assert(PopupMenu1.Items[1].Tag = Ord(rmSingle));
-  assert(PopupMenu1.Items[2].Tag = Ord(rmWpx));
-  assert(PopupMenu1.Items[3].Tag = Ord(rmHst));
-  PopupMenu1.Items[Ord(DefaultRunMode)-1].Default := True;
+  assert(PopupMenu1.Items[0].Tag = Ord(rmPileUp)+1);
+  assert(PopupMenu1.Items[1].Tag = Ord(rmSingle)+1);
+  assert(PopupMenu1.Items[2].Tag = Ord(rmWpx)+1);
+  assert(PopupMenu1.Items[3].Tag = Ord(rmHst)+1);
+//  PopupMenu1.Items[Ord(DefaultRunMode)-1].Default := True;
+  PopupMenu1.Items[Ord(DefaultRunMode)].Default := True;
 end;
 
 
@@ -1350,7 +1393,7 @@ end;
 procedure TMainForm.SetMyExch2(const AExchType: TExchange2Type;
   const Avalue: string);
 begin
-  assert(RunMode = rmStop);
+  //assert(Ini.pgmState = psStop);
   // Adding a contest: setup contest-specific exchange field 2
   case AExchType of
     etSerialNr:
@@ -1499,6 +1542,12 @@ end;
 procedure TMainForm.ComboBox2Change(Sender: TObject);
 begin
   SetBw(ComboBox2.ItemIndex);
+end;
+
+//ComboBox selects Pileup, Single Calls, etc. -- (K6OK)
+procedure TMainForm.comboModeSelect(Sender: TObject);
+begin
+  SetDefaultRunMode(comboMode.ItemIndex);
 end;
 
 procedure TMainForm.ComboBox1Change(Sender: TObject);
@@ -1665,7 +1714,7 @@ end;
 procedure TMainForm.RunMNUClick(Sender: TObject);
 begin
   SetDefaultRunMode((Sender as TComponent).Tag);
-  Run(DefaultRunMode);
+  Run(DefaultRunMode, pgmState);
 end;
 
 
@@ -1699,18 +1748,25 @@ begin
 end;
 
 
-procedure TMainForm.Run(Value: TRunMode);
+procedure TMainForm.Run(Value: TRunMode; valuState: TPgmState);
 const
   Mode: array[TRunMode] of string =
-    ('', 'Pile-Up', 'Single Calls', 'COMPETITION', 'H S T');
+    ('Pile-Up', 'Single Calls', 'COMPETITION', 'H S T');
 var
-  BCompet, BStop: boolean;
+  BCompet, BStop, BPause, BRun, BResume : boolean;
   //S: string;
 begin
-  if Value = Ini.RunMode then
-    Exit;
+{
+  if Value = Ini.RunMode then   // SpdBtnVisibility function prevents
+    Exit;						            // re-clicking run once run is engaged (K6OK)
+}
 
-  if Value <> rmStop then
+  BRun := valuState = psRun;
+  BStop := valuState = psStop;
+  BPause := valuState = psPause;
+  BResume := valuState = psRunAfterPause;
+
+  if BRun and not BResume then        //Run a new session
   begin
     {
       consider special case of click Run while focus in CallSign or Exchange
@@ -1736,6 +1792,7 @@ begin
       it's sent type. The sent type is our receiving type which can be used
       to check the accuracy of the entered QSO.
     }
+
     if UserCallsignDirty then
        if not SetMyCall(Trim(Edit4.Text)) then
          Exit;
@@ -1762,9 +1819,8 @@ begin
     // load call history and other contest-specific setup before starting
     if not Tst.OnContestPrepareToStart(Ini.Call, ExchangeEdit.Text) then
       Exit;
-  end;
 
-  BStop := Value = rmStop;
+
   BCompet := Value in [rmWpx, rmHst];
   RunMode := Value;
 
@@ -1778,9 +1834,9 @@ begin
   EnableCtl(Edit4,  BStop);
   EnableCtl(ExchangeEdit, BStop and ActiveContest.ExchFieldEditable);
   EnableCtl(SpinEdit2, BStop);
-  SetToolbuttonDown(ToolButton1, not BStop);
-  ToolButton1.Caption := IfThen(BStop, 'Run', 'Stop');
-  ToolButton1.ImageIndex := IfThen(BStop, 0, 10);
+  //SetToolbuttonDown(ToolButton1, not BStop);
+  //ToolButton1.Caption := IfThen(BStop, 'Run', 'Stop');
+  //ToolButton1.ImageIndex := IfThen(BStop, 0, 10);
 
   //condition checkboxes
   EnableCtl(CheckBox2, not BCompet);
@@ -1844,36 +1900,53 @@ begin
   if RunMode = rmHst then begin ComboBox2.ItemIndex :=10; SetBw(10); end;
 
   if RunMode = rmHst then ListView1.Visible := false
-  else if RunMode <> rmStop then ListView1.Visible := true;
+  else ListView1.Visible := true;
 
 
   //mode caption
   Panel4.Caption := Mode[Value];
   Panel4.Font.Color := IfThen(BCompet, clRed, clGreen);
 
-  if not BStop then
-    begin
-    Tst.Me.AbortSend;
-    Tst.BlockNumber := 0;
-    //Tst.Me.Nr := 1;
-    Log.Clear;
-    WipeBoxes;
+  Tst.Me.AbortSend;
+  Tst.BlockNumber := 0;
+  //Tst.Me.Nr := 1;
+  Log.Clear;
+  WipeBoxes;
 
-    RichEdit1.Visible:= false;
-    RichEdit1.Align:= alNone;
-    sbar.Align:= alBottom;
-    sbar.Visible:= mnuShowCallsignInfo.Checked;
-    ListView2.Align:= alClient;
-    ListView2.Clear;
-    ListView2.Visible:= true;
-    {! ?}
-    Panel5.Update;
-    end;
+  RichEdit1.Visible:= false;
+  RichEdit1.Align:= alNone;
+  sbar.Align:= alBottom;
+  sbar.Visible:= mnuShowCallsignInfo.Checked;
+  ListView2.Align:= alClient;
+  ListView2.Clear;
+  ListView2.Visible:= true;
+  {! ?}
+  Panel5.Update;
+  IncRit(0);
 
-  if not BStop then
-    IncRit(0);
+  AlSoundOut1.Enabled := true;
 
-  if BStop then begin
+  AlWavFile1.FileName := ChangeFileExt(ParamStr(0), '.wav');
+    if SaveWav then
+      AlWavFile1.OpenWrite;
+  end;
+
+
+  if {BRun and} BResume then                 //Resume a run after pause
+  begin
+    AlSoundOut1.Resume;
+    exit;                                    //need code to restart stations calling
+  end;
+
+
+  if BPause then                             //User initiates a pause
+  begin
+    AlSoundOut1.Pause;
+    exit;                                    //need code to stop stations calling
+  end;
+
+  if BStop then                              //End of session
+  begin
     {// save NR back to .INI File.
     // todo - there is a better way to this.
     if (not BCompet) and
@@ -1884,38 +1957,72 @@ begin
         Self.SetMyExch2(etSerialNr, S);
       end;
       }
+    AlSoundOut1.Enabled := false;
     if AlWavFile1.IsOpen then
       AlWavFile1.Close;
-  end
-  else begin
-    AlWavFile1.FileName := ChangeFileExt(ParamStr(0), '.wav');
-    if SaveWav then
-      AlWavFile1.OpenWrite;
   end;
 
-  AlSoundOut1.Enabled := not BStop;
+
+
 end;
 
-
-procedure TMainForm.RunBtnClick(Sender: TObject);
+// Event handlers for Run-Pause-Stop buttons --------------- (K6OK)
+procedure TMainForm.spdbtnRunClick(Sender: TObject);
 begin
-  if RunMode = rmStop then
-    Run(DefaultRunMode)
-  else
-    Tst.FStopPressed := true;
+  if Ini.pgmState = psStop then    // Run after Stop is always a full reset
+  begin
+    Panel2.Caption := '00:00:00';
+    StartTime := Now;
+    Ini.pgmState := psRun;
+    PausedTime := 0;
+  end;
+  if pgmState = psPause then    // Run after Pause is a resume
+  begin
+    PausedTime := (Now - PauseStartTime) + PausedTime;
+    pgmState := psRunAfterPause;
+  end;
+  Run(DefaultRunMode, Ini.pgmState);
+  labelStatus.Caption := 'Status: Running';
+  SpdBtnVisibility(1);
 end;
 
-procedure TMainForm.WmTbDown(var Msg: TMessage);
+procedure TMainForm.spdbtnPauseClick(Sender: TObject);
 begin
-  TToolbutton(Msg.LParam).Down := Boolean(Msg.WParam);
+   Ini.pgmState := psPause;
+   Run(DefaultRunMode, Ini.pgmState);
+   PauseStartTime := Now;
+   labelStatus.Caption := 'Status: Paused';
+   SpdBtnVisibility(2);
 end;
 
-
-procedure TMainForm.SetToolbuttonDown(Toolbutton: TToolbutton;
-  ADown: boolean);
+procedure TMainForm.spdbtnStopClick(Sender: TObject);
 begin
-    Windows.PostMessage(Handle, WM_TBDOWN, Integer(ADown), Integer(Toolbutton));
+   Ini.pgmState := psStop;
+   Run(DefaultRunMode, Ini.pgmState);
+   StopTime := Now;
+   labelStatus.Caption := 'Status: Stopped';
+   SpdBtnVisibility(3);
 end;
+
+procedure TMainForm.SpdBtnVisibility(valu: integer);
+begin
+  spdbtnRun.Enabled := (valu in [2, 3]);
+  spdbtnPause.Enabled := (valu = 1);
+  spdbtnStop.Enabled := (valu in [1, 2]);
+end;
+
+// Emits an event every 250 mSec for timekeeping
+// Updates the stopwatch on Panel 2
+procedure TMainForm.Timer1Timer(Sender: TObject);
+begin
+  if Ini.pgmState in [psRun, psRunAfterPause] then
+  begin
+    ElapsedTime := Now - StartTime - PausedTime;
+    Panel2.Caption := FormatDateTime('hh:mm:ss', ElapsedTime);
+  end;
+end;
+
+// -----------------------------------------------------  (end K6OK)
 
 
 procedure TMainForm.PopupScoreWpx;
@@ -2027,7 +2134,6 @@ begin
   RichEdit1.Font.Name:= 'Consolasf';
 end;
 
-
 procedure TMainForm.Panel8MouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
@@ -2087,13 +2193,27 @@ begin
   UpdateRitIndicator;
 end;
 
-
 procedure TMainForm.UpdateRitIndicator;
 begin
-  Shape2.Width := Ini.Bandwidth div 9;
-  Shape2.Left := ((Panel8.Width - Shape2.Width) div 2) + (Ini.Rit div 9);
+  Shape2.Width := Ini.Bandwidth div 20;    // was 9
+  Shape2.Left := ((Panel8.Width - Shape2.Width) div 2) + (Ini.Rit div 20);  // was div 9
+  Label27.Caption := InttoStr(Ini.Rit);   // Update RIT numerical readout (K6OK)
 end;
 
+procedure TMainForm.spdbtnResetRITClick(Sender: TObject);
+begin
+  IncRit(0);                              // Reset RIT to zero (K6OK)
+end;
+
+procedure TMainForm.spdbtnRightRITClick(Sender: TObject);
+begin
+  IncRit(1);                              // RIT +dF right arrow button (K6OK)
+end;
+
+procedure TMainForm.spdbtnLeftRITClick(Sender: TObject);
+begin
+  IncRit(-1);                             // RIT -dF left arrow button (K6OK)
+end;
 
 {
   Move cursor to next exchange field.
@@ -2265,8 +2385,8 @@ procedure TMainForm.File1Click(Sender: TObject);
 var
   Stp: boolean;
 begin
-  Stp := RunMode = rmStop;
-
+  if Ini.pgmState = psStop then
+    Stp := True else Stp := False;
   AudioRecordingEnabled1.Enabled := Stp;
   PlayRecordedAudio1.Enabled := Stp and FileExists(ChangeFileExt(ParamStr(0), '.wav'));
 
@@ -2423,7 +2543,7 @@ begin
   SerialNRCustomRange.Checked := snt = snCustomRange;
 
   // update contest-specific settings/caches (e.g. SerialNR Generator for CQ Wpx)
-  if not (RunMode in [rmStop, rmHST]) then
+  if (pgmState = psRun) and (RunMode <> rmHST) then
     Tst.SerialNrModeChanged;
 end;
 
@@ -2438,6 +2558,8 @@ end;
 
 
 //ALL checkboxes
+
+
 procedure TMainForm.LIDS1Click(Sender: TObject);
 begin
   with Sender as TMenuItem do Checked := not Checked;
@@ -2527,10 +2649,9 @@ begin
     end;
 end;
 
-
 procedure TMainForm.StopMNUClick(Sender: TObject);
 begin
-  Tst.FStopPressed := true;
+  Ini.pgmState := psStop;
 end;
 
 end.
