@@ -16,10 +16,24 @@ const
 type
   TStationMessage =  (msgNone, msgCQ, msgNR, msgTU, msgMyCall, msgHisCall,
     msgB4, msgQm, msgNil, msgGarbage, msgR_NR, msgR_NR2, msgDeMyCall1, msgDeMyCall2,
-    msgDeMyCallNr1, msgDeMyCallNr2, msgNrQm, msgLongCQ, msgMyCallNr2,
-    msgQrl, msgQrl2, msqQsy, msgAgn);
+    msgDeMyCallNr1, msgDeMyCallNr2, msgMyCallNr1, msgMyCallNr2, msgMyCall2,
+    msgNrQm, msgLongCQ, msgQrl, msgQrl2, msqQsy, msgAgn);
 
   TStationMessages = set of TStationMessage;
+
+  {
+    TStationState represents the operational states of a Station.
+
+    stListening
+        Station is waiting for Operator (the User) to send a message.
+    stCopying
+        Station is in this state while Operator's message is transmitted.
+    stPreparingToSend
+        Station is preparing a new message to be sent to the User.
+        After a brief delay time, this message is transmitted.
+    stSending
+        Station is sending it's message to the User.
+  }
   TStationState = (stListening, stCopying, stPreparingToSend, stSending);
   TStationEvent = (evTimeout, evMsgSent, evMeStarted, evMeFinished);
 
@@ -48,7 +62,10 @@ type
     procedure SetPitch(const Value: integer);
   protected
     SendPos: integer;
-    TimeOut: integer;
+    TimeOut: integer; // remaining Ticks until evTimeout occurs.
+                      // A Tick occurs whenever an audio block is requested.
+                      // TStation.Tick() calls ProcessEvent(evTimeout) whenever
+                      // Timeout decrements to zero.
     NrWithError: boolean;
     R1 : Single;    // holds a Random number; used in NrAsText
     procedure Init;
@@ -198,6 +215,7 @@ end;
 
 procedure TStation.SendMsg(AMsg: TStationMessage);
 begin
+  assert(State in [stPreparingToSend, stSending, stListening]);
   if Envelope = nil then Msg := [];
   if AMsg = msgNone then begin State := stListening; Exit; End;
   Include(Msg, AMsg);

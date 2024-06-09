@@ -53,10 +53,7 @@ begin
   Operid := Tst.PickStation;
   MyCall := Tst.GetCall(Operid);
 
-  Oper := TDxOperator.Create;
-  Oper.Call := MyCall;
-  Oper.Skills := 1 + Random(3); //1..3
-  Oper.SetState(osNeedPrevEnd);
+  Oper := TDxOperator.Create(MyCall, osNeedPrevEnd);
   NrWithError := Ini.Lids and (Random < 0.1);
 
   // DX's speed, {WpmS,WpmC}, is set once at creation time
@@ -135,13 +132,23 @@ begin
           // during debug, use status bar to show CW stream
           if BDebugCwDecoder or BDebugGhosting then
             Mainform.sbar.Caption :=
-              (Format('[%s-Timeout]',[MyCall]) + '; ' +
+              (Format('[%s-osFailed], Stn deleted',[MyCall]) + '; ' +
               Mainform.sbar.Caption).Substring(0, 80);
           Free;
           Exit;
           end;
-        State := stPreparingToSend;
+
+        if Oper.IsGhosting then
+        begin
+          // if the operator is ghosting, this station will stop transmitting.
+          // force this station's state into stListening mode so it can
+          // receive final messages from the operator.
+          State := stListening;
+        end
+        else
+          State := stPreparingToSend;
         end;
+
       //preparations to send are done, now send
       if State = stPreparingToSend then
         for i:=1 to Oper.RepeatCnt do SendMsg(Oper.GetReply)
@@ -169,22 +176,32 @@ begin
               // during debug, use status bar to show CW stream
               if BDebugCwDecoder or BDebugGhosting then
                 Mainform.sbar.Caption :=
-                  (Format('[%s-Failed]',[MyCall]) + '; ' +
+                  (Format('[%s-osFailed, Stn deleted]',[MyCall]) + '; ' +
                   Mainform.sbar.Caption).Substring(0, 80);
               Free;
               Exit;
-            end
-          else
+            end;
+
+          if Oper.IsGhosting then begin
+            // if the operator is ghosting, this station will stop transmitting.
+            // force this station's state into stListening mode so it can
+            // receive final messages from the operator.
+            State := stListening;
+          end
+          else begin
             TimeOut := Oper.GetSendDelay; //reply or switch to standby
-          State := stPreparingToSend;
+            State := stPreparingToSend;
+          end;
         end;
 
     evMeStarted:
       //If we are not sending, we can start copying
       //Cancel timeout, he is replying
       begin
-        if State <> stSending then
+        if State <> stSending then begin
+          assert(State in [stPreparingToSend, stListening]);
           State := stCopying;
+        end;
         TimeOut := NEVER;
       end;
     end;
@@ -196,12 +213,13 @@ procedure TDxStation.SendMsg(AMsg: TStationMessage);
 begin
   inherited SendMsg(AMsg);
 
-  if BDebugExchSettings and (Mainform.Edit2.Text = '') and
-    (AMsg in [msgNR, msgR_NR, msgR_NR2,
-    msgDeMyCallNr1, msgDeMyCallNr2, msgMyCallNr2]) then
+  if BDebugExchSettings and (AMsg in [msgNR, msgR_NR, msgR_NR2,
+    msgDeMyCallNr1, msgDeMyCallNr2, msgMyCallNr1, msgMyCallNr2]) then
   begin
-    Mainform.Edit2.Text := Exch1;
-    if (SimContest <> scNaQp) or (Exch2 <> 'DX') then
+    if (Mainform.Edit2.Text = '') then
+      Mainform.Edit2.Text := Exch1;
+    if (Mainform.Edit3.Text = '') and
+      ((SimContest <> scNaQp) or (Exch2 <> 'DX')) then
       MainForm.Edit3.Text := Exch2;
   end;
 end;
