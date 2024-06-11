@@ -108,7 +108,7 @@ var
   RawPoints:        integer;   // accumalated raw QSO points total
   VerifiedPoints:   integer;   // accumulated verified QSO points total
   CallSent: boolean; // msgHisCall has been sent; cleared upon edit.
-  NrSent: boolean;   // msgNR has been sent. Seems to imply exchange sent.
+  NrSent: boolean;   // msgNR has been sent; cleared after qso is completed.
   ShowCorrections: boolean;    // show exchange correction column.
   Histo: THisto;
   LogColWidths : Array[0..6] of integer;  // retain original Log column widths
@@ -761,7 +761,7 @@ begin
     for i:=Tst.Stations.Count-1 downto 0 do
       if Tst.Stations[i] is TDxStation then
         with Tst.Stations[i] as TDxStation do
-          if (MyCall = Qso.Call) then
+          if ((MyCall = Qso.Call) or (Oper.IsMyCall(Qso.Call, False) = mcAlmost)) then
           begin
             Qso.TrueWpm := WpmAsText();
             Break;
@@ -771,7 +771,8 @@ begin
     for i:=Tst.Stations.Count-1 downto 0 do
       if Tst.Stations[i] is TDxStation then
         with Tst.Stations[i] as TDxStation do
-          if (Oper.State = osDone) and (MyCall = Qso.Call) then
+          if (Oper.State = osDone) and
+             ((MyCall = Qso.Call) or (Oper.IsMyCall(Qso.Call, False) = mcAlmost)) then
             begin
               DataToLastQso; //grab "True" data and delete this dx station!
               Break;
@@ -996,12 +997,10 @@ begin
       else if Dupe and not Log.ShowCorrections then
         ExchError := leDUP
       else
-      begin
         ExchError := leNONE;
 
-        // find exchange errors for the current Qso
-        Tst.FindQsoErrors(QsoList[High(QsoList)], Corrections);
-      end;
+      // find exchange errors for the current Qso
+      Tst.FindQsoErrors(QsoList[High(QsoList)], Corrections);
 
       CallColumnColor := clBlack;
       Exch1ColumnColor := clBlack;

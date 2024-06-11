@@ -335,6 +335,8 @@ begin
     msgDeMyCall2: SendText(AStn, 'DE <my> <my>');
     msgDeMyCallNr1: SendText(AStn, 'DE <my> <#>');
     msgDeMyCallNr2: SendText(AStn, 'DE <my> <my> <#>');
+    msgMyCall2: SendText(AStn, '<my> <my>');
+    msgMyCallNr1: SendText(AStn, '<my> <#>');
     msgMyCallNr2: SendText(AStn, '<my> <my> <#>');
     msgNrQm: SendText(AStn, 'NR?');
     msgLongCQ: SendText(AStn, 'CQ CQ TEST <my> <my> TEST');  // QrmStation only
@@ -502,7 +504,9 @@ begin
     for i:=Stations.Count-1 downto 0 do
       if Stations[i] is TDxStation then
         with Stations[i] as TDxStation do
-          if (Oper.State = osDone) and (QsoList <> nil) and (MyCall = QsoList[High(QsoList)].Call) then begin
+          if (Oper.State = osDone) and (QsoList <> nil) and
+            ((MyCall = QsoList[High(QsoList)].Call) or
+             (Oper.IsMyCall(QsoList[High(QsoList)].Call, False) = mcAlmost)) then begin
               // grab Qso's "True" data (e.g. TrueCall, TrueExch1, TrueExch2)
               DataToLastQso; // deletes this TDxStation from Stations[]
 
