@@ -1,7 +1,7 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProjectGuid>{C110DC42-2814-474C-BF8A-873A68F27692}</ProjectGuid>
-        <MainSource>MorseRunnerProto185Testing.dpr</MainSource>
+        <MainSource>MorseRunner.dpr</MainSource>
         <Config Condition="'$(Config)'==''">Release</Config>
         <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
         <ProjectVersion>19.5</ProjectVersion>
@@ -56,7 +56,7 @@
         <DCC_S>false</DCC_S>
         <DCC_F>false</DCC_F>
         <DCC_K>false</DCC_K>
-        <SanitizedProjectName>MorseRunnerProto185Testing</SanitizedProjectName>
+        <SanitizedProjectName>MorseRunner</SanitizedProjectName>
         <DCC_Namespace>Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;System;Xml;Data;Datasnap;Web;Soap;Winapi;System.Win;$(DCC_Namespace)</DCC_Namespace>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_AutoGenVersion>true</VerInfo_AutoGenVersion>
@@ -182,7 +182,7 @@
         <BorlandProject>
             <Delphi.Personality>
                 <Source>
-                    <Source Name="MainSource">MorseRunnerProto185Testing.dpr</Source>
+                    <Source Name="MainSource">MorseRunner.dpr</Source>
                 </Source>
                 <Parameters>
                     <Parameters Name="UseLauncher">False</Parameters>
@@ -277,9 +277,9 @@
                 </DeployFile>
                 <DeployFile LocalName="MorseRunner.exe" Configuration="Debug" Class="ProjectOutput"/>
                 <DeployFile LocalName="MorseRunner.exe" Configuration="Release" Class="ProjectOutput"/>
-                <DeployFile LocalName="MorseRunnerProto185Testing.exe" Configuration="Release" Class="ProjectOutput">
+                <DeployFile LocalName="MorseRunner.exe" Configuration="Release" Class="ProjectOutput">
                     <Platform Name="Win32">
-                        <RemoteName>MorseRunnerProto185Testing.exe</RemoteName>
+                        <RemoteName>MorseRunner.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
