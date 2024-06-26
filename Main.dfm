@@ -623,7 +623,7 @@ object MainForm: TMainForm
       ExplicitTop = 237
       ExplicitWidth = 572
       object labelStatus: TLabel
-        Left = 492
+        Left = 488
         Top = 1
         Width = 82
         Height = 13
@@ -648,82 +648,92 @@ object MainForm: TMainForm
     TabOrder = 2
     ExplicitLeft = 576
     ExplicitHeight = 304
-    object Label24: TLabel
-      Left = 73
-      Top = 260
-      Width = 16
-      Height = 13
-      Caption = 'RIT'
-      Font.Charset = ANSI_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'Segoe UI'
-      Font.Style = []
-      ParentFont = False
-    end
-    object Label27: TLabel
-      Left = 63
-      Top = 286
-      Width = 38
-      Height = 15
-      Alignment = taCenter
-      AutoSize = False
-      Caption = '0'
-      Font.Charset = ANSI_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'Segoe UI'
-      Font.Style = []
-      ParentFont = False
-    end
-    object spdbtnRightRIT: TSpeedButton
-      Left = 130
-      Top = 270
-      Width = 20
-      Height = 20
+    object spdbtnRun: TSpeedButton
+      Left = 52
+      Top = 273
+      Width = 32
+      Height = 32
       Caption = '4'
-      Flat = True
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -21
+      Font.Color = clGreen
+      Font.Height = -29
       Font.Name = 'Webdings'
-      Font.Style = [fsBold]
-      Layout = blGlyphRight
+      Font.Style = []
       ParentFont = False
-      OnClick = spdbtnRightRITClick
+      OnClick = spdbtnRunClick
     end
-    object spdbtnLeftRIT: TSpeedButton
-      Left = 10
-      Top = 270
-      Width = 20
-      Height = 20
-      Caption = '3'
-      Flat = True
+    object spdbtnPause: TSpeedButton
+      Left = 90
+      Top = 273
+      Width = 32
+      Height = 32
+      Caption = ';'
+      Enabled = False
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -21
+      Font.Color = clBlack
+      Font.Height = -27
       Font.Name = 'Webdings'
-      Font.Style = [fsBold]
+      Font.Style = []
       ParentFont = False
-      OnClick = spdbtnLeftRITClick
+      OnClick = spdbtnPauseClick
     end
-    object spdbtnResetRIT: TSpeedButton
-      Left = 160
-      Top = 270
-      Width = 33
-      Height = 20
-      Caption = 'Reset'
+    object spdbtnStop: TSpeedButton
+      Left = 128
+      Top = 273
+      Width = 34
+      Height = 32
+      Caption = '<'
+      Enabled = False
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clRed
+      Font.Height = -27
+      Font.Name = 'Webdings'
+      Font.Style = []
+      ParentFont = False
+      OnClick = spdbtnStopClick
+    end
+    object Label25: TLabel
+      Left = 57
+      Top = 256
+      Width = 21
+      Height = 13
+      Caption = 'Run'
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
       Font.Height = -11
       Font.Name = 'Segoe UI'
       Font.Style = []
       ParentFont = False
-      OnClick = spdbtnResetRITClick
+    end
+    object Label26: TLabel
+      Left = 92
+      Top = 256
+      Width = 30
+      Height = 13
+      Caption = 'Pause'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
+    end
+    object Label28: TLabel
+      Left = 134
+      Top = 256
+      Width = 24
+      Height = 13
+      Caption = 'Stop'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
     end
     object GroupBox3: TGroupBox
       Left = 6
-      Top = 173
+      Top = 170
       Width = 194
       Height = 84
       Caption = ' Band Conditions '
@@ -953,28 +963,6 @@ object MainForm: TMainForm
           '600 Hz')
       end
     end
-    object Panel8: TPanel
-      Left = 30
-      Top = 276
-      Width = 100
-      Height = 10
-      Cursor = crHandPoint
-      Hint = 'RIT -- Use Up/Down keys or Mouse Wheel; Hold Control key for BW.'
-      BevelOuter = bvLowered
-      ParentShowHint = False
-      ShowHint = True
-      TabOrder = 2
-      OnMouseDown = Panel8MouseDown
-      object Shape2: TShape
-        Left = 40
-        Top = 2
-        Width = 20
-        Height = 7
-        Cursor = crHandPoint
-        Brush.Color = 12902431
-        OnMouseDown = Shape2MouseDown
-      end
-    end
   end
   object Panel12: TPanel
     Left = 0
@@ -1026,88 +1014,78 @@ object MainForm: TMainForm
       Font.Style = []
       ParentFont = False
     end
-    object Label25: TLabel
-      Left = 651
-      Top = 11
-      Width = 21
-      Height = 15
-      Caption = 'Run'
+    object spdbtnResetRIT: TSpeedButton
+      Left = 744
+      Top = 34
+      Width = 33
+      Height = 20
+      Caption = 'Reset'
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
-      Font.Height = -12
+      Font.Height = -11
       Font.Name = 'Segoe UI'
       Font.Style = []
       ParentFont = False
+      OnClick = spdbtnResetRITClick
     end
-    object Label26: TLabel
-      Left = 679
-      Top = 11
-      Width = 31
-      Height = 15
-      Caption = 'Pause'
-      Font.Charset = ANSI_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -12
-      Font.Name = 'Segoe UI'
-      Font.Style = []
-      ParentFont = False
-    end
-    object Label28: TLabel
-      Left = 717
-      Top = 11
-      Width = 24
-      Height = 15
-      Caption = 'Stop'
-      Font.Charset = ANSI_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -12
-      Font.Name = 'Segoe UI'
-      Font.Style = []
-      ParentFont = False
-    end
-    object spdbtnRun: TSpeedButton
-      Left = 641
-      Top = 27
-      Width = 32
-      Height = 32
+    object spdbtnRightRIT: TSpeedButton
+      Left = 720
+      Top = 34
+      Width = 20
+      Height = 20
       Caption = '4'
+      Flat = True
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clGreen
-      Font.Height = -29
+      Font.Color = clWindowText
+      Font.Height = -21
       Font.Name = 'Webdings'
-      Font.Style = []
+      Font.Style = [fsBold]
+      Layout = blGlyphRight
       ParentFont = False
-      OnClick = spdbtnRunClick
+      OnClick = spdbtnRightRITClick
     end
-    object spdbtnPause: TSpeedButton
-      Left = 679
-      Top = 27
-      Width = 32
-      Height = 32
-      Caption = ';'
-      Enabled = False
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
-      Font.Height = -27
-      Font.Name = 'Webdings'
+    object Label24: TLabel
+      Left = 663
+      Top = 23
+      Width = 16
+      Height = 13
+      Caption = 'RIT'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Segoe UI'
       Font.Style = []
       ParentFont = False
-      OnClick = spdbtnPauseClick
     end
-    object spdbtnStop: TSpeedButton
-      Left = 715
-      Top = 27
-      Width = 34
-      Height = 32
-      Caption = '<'
-      Enabled = False
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clRed
-      Font.Height = -27
-      Font.Name = 'Webdings'
+    object Label27: TLabel
+      Left = 651
+      Top = 55
+      Width = 38
+      Height = 15
+      Alignment = taCenter
+      AutoSize = False
+      Caption = '0'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Segoe UI'
       Font.Style = []
       ParentFont = False
-      OnClick = spdbtnStopClick
+    end
+    object spdbtnLeftRIT: TSpeedButton
+      Left = 600
+      Top = 34
+      Width = 20
+      Height = 20
+      Caption = '3'
+      Flat = True
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -21
+      Font.Name = 'Webdings'
+      Font.Style = [fsBold]
+      ParentFont = False
+      OnClick = spdbtnLeftRITClick
     end
     object Edit1: TEdit
       Left = 74
@@ -1164,6 +1142,28 @@ object MainForm: TMainForm
       OnEnter = Edit3Enter
       OnKeyPress = Edit3KeyPress
     end
+    object Panel8: TPanel
+      Left = 620
+      Top = 40
+      Width = 100
+      Height = 10
+      Cursor = crHandPoint
+      Hint = 'RIT -- Use Up/Down keys or Mouse Wheel; Hold Control key for BW.'
+      BevelOuter = bvLowered
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 3
+      OnMouseDown = Panel8MouseDown
+      object Shape2: TShape
+        Left = 40
+        Top = 2
+        Width = 20
+        Height = 7
+        Cursor = crHandPoint
+        Brush.Color = 12902431
+        OnMouseDown = Shape2MouseDown
+      end
+    end
   end
   object Panel5: TPanel
     Left = 0
@@ -1199,7 +1199,7 @@ object MainForm: TMainForm
       ParentFont = False
     end
     object Label17: TLabel
-      Left = 403
+      Left = 543
       Top = 8
       Width = 51
       Height = 15
@@ -1212,7 +1212,7 @@ object MainForm: TMainForm
       ParentFont = False
     end
     object Label29: TLabel
-      Left = 523
+      Left = 417
       Top = 8
       Width = 31
       Height = 15
@@ -1225,8 +1225,8 @@ object MainForm: TMainForm
       ParentFont = False
     end
     object Label8: TLabel
-      Left = 665
-      Top = 32
+      Left = 715
+      Top = 33
       Width = 21
       Height = 15
       Caption = 'min'
@@ -1238,8 +1238,8 @@ object MainForm: TMainForm
       ParentFont = False
     end
     object Label30: TLabel
-      Left = 613
-      Top = 8
+      Left = 663
+      Top = 9
       Width = 46
       Height = 15
       Caption = 'Duration'
@@ -1280,8 +1280,8 @@ object MainForm: TMainForm
       OnChange = SimContestComboChange
     end
     object ExchangeEdit: TEdit
-      Left = 370
-      Top = 27
+      Left = 513
+      Top = 26
       Width = 116
       Height = 25
       TabStop = False
@@ -1293,14 +1293,13 @@ object MainForm: TMainForm
       Font.Style = []
       ParentFont = False
       TabOrder = 1
-      Text = '3A ON'
       OnChange = ExchangeEditChange
       OnExit = ExchangeEditExit
     end
     object comboMode: TComboBox
-      Left = 492
+      Left = 370
       Top = 26
-      Width = 115
+      Width = 137
       Height = 25
       Style = csDropDownList
       Font.Charset = ANSI_CHARSET
@@ -1308,11 +1307,9 @@ object MainForm: TMainForm
       Font.Height = -13
       Font.Name = 'Segoe UI'
       Font.Style = []
-      ItemIndex = 0
       ParentFont = False
       TabOrder = 2
       TabStop = False
-      Text = 'Pile-Up'
       OnSelect = comboModeSelect
       Items.Strings = (
         'Pile-Up'
@@ -1321,8 +1318,8 @@ object MainForm: TMainForm
         'HST Competition')
     end
     object SpinEdit2: TSpinEdit
-      Left = 613
-      Top = 26
+      Left = 663
+      Top = 27
       Width = 45
       Height = 24
       TabStop = False
@@ -1350,11 +1347,10 @@ object MainForm: TMainForm
       Font.Height = -13
       Font.Name = 'Segoe UI'
       Font.Style = []
-      ItemIndex = 0
       ParentFont = False
       TabOrder = 4
       TabStop = False
-      Text = 'Practice'
+      OnSelect = comboActivitySelect
       Items.Strings = (
         'Practice'
         'Training'

@@ -23,6 +23,10 @@ const
   DEFAULTRATE = 11025;
 
   DEFAULTWEBSERVER = 'http://www.dxatlas.com/MorseRunner/MrScore.asp';
+
+  INI_FLDRNAME = 'MorseRunnerCE';                        //(K6OK)
+  INI_FILENAME = 'MorseRunner.ini';
+
 type
   // Adding a contest: Append new TSimContest enum value for each contest.
   TSimContest = (scWpx, scCwt, scFieldDay, scNaQp, scHst, scCQWW, scArrlDx,
@@ -283,6 +287,8 @@ procedure ToIni;
 function IsNum(Num: String): Boolean;
 function FindContestByName(const AContestName : String) : TSimContest;
 function ToStr(const val: TRunMode): String; overload;
+function MRCE_Dir_Exists: Boolean;          // (K6OK)
+
 
 
 implementation
@@ -307,6 +313,8 @@ var
   C: PContestDefinition;
   SC: TSimContest;
   KeyName: String;
+  IniPath: string;
+  IniFile: TCustomIniFile;
 
   procedure ReadSerialNRSetting(
     IniFile: TCustomIniFile;
@@ -331,9 +339,12 @@ var
   end;
 
 begin
-  var IniFile: TCustomIniFile := TIniFile.Create(ChangeFileExt(ParamStr(0), '.ini'));
+  IniPath := IncludeTrailingPathDelimiter(GetEnvironmentVariable('LOCALAPPDATA'));
+  IniFile := TIniFile.Create(IniPath + INI_FLDRNAME + '\'+ INI_FILENAME);
   with IniFile do
     try
+      // initial Activity is first item in comboActivity dropdown  (K6OK)
+      MainForm.comboActivity.ItemIndex := 0;
       // initial Contest pick will be first item in the Contest Dropdown.
       V:= Ord(FindContestByName(MainForm.SimContestCombo.Items[0]));
       // Load SimContest, but do not call SetContest() until UI is initialized.
@@ -343,6 +354,8 @@ begin
       ActiveContest := @ContestDefinitions[SimContest];
       MainForm.SimContestCombo.ItemIndex :=
         MainForm.SimContestCombo.Items.IndexOf(ActiveContest.Name);
+      // initial Mode is first item in comboMode dropdown  (K6OK)
+      MainForm.comboMode.ItemIndex := 0;
 
       // load contest-specific Exchange Strings from .INI file.
       for SC := Low(ContestDefinitions) to High(ContestDefinitions) do begin
@@ -415,6 +428,11 @@ begin
       PostMethod := UpperCase(ReadString(SEC_SYS, 'PostMethod', 'POST'));
       MainForm.mnuShowCallsignInfo.Checked := ReadBool(SEC_SYS, 'ShowCallsignInfo', true);
 
+      // Main Form size and position  (K6OK)
+      MainForm.Top := ReadInteger(SEC_SYS,'fmTop',150);
+      MainForm.Left := ReadInteger(SEC_SYS,'fmLeft',150);
+      MainForm.Height := 653; MainForm.Width := 804;
+
       //buffer size
       V := ReadInteger(SEC_SYS, 'BufSize', 0);
       if V = 0 then
@@ -450,8 +468,10 @@ var
   V: integer;
   SC: TSimContest;
   KeyName: String;
+  IniPath: String; wholep: string;
 begin
-  with TIniFile.Create(ChangeFileExt(ParamStr(0), '.ini')) do
+  IniPath := IncludeTrailingPathDelimiter(GetEnvironmentVariable('LOCALAPPDATA'));
+  with TIniFile.Create(IniPath + INI_FLDRNAME + '\'+ INI_FILENAME) do
     try
       WriteBool(SEC_SYS, 'ShowCallsignInfo', MainForm.mnuShowCallsignInfo.Checked);
 
@@ -514,6 +534,12 @@ begin
       WriteInteger(SEC_SET, 'FarnsworthCharacterRate', FarnsworthCharRate);
       WriteInteger(SEC_SET, 'WpmStepRate', WpmStepRate);
       WriteInteger(SEC_SET, 'RitStepIncr', RitStepIncr);
+
+      // Main form size and position             (K6OK)
+      WriteInteger(SEC_SYS,'fmTop',MainForm.Top);
+      WriteInteger(SEC_SYS,'fmLeft',MainForm.Left);
+      WriteInteger(SEC_SYS,'fmHeight',MainForm.Height);
+      WriteInteger(SEC_SYS,'fmWidth',MainForm.Width);
 
     finally
       Free;
@@ -625,6 +651,21 @@ begin
   raise Exception.Create(
       Format('error: ''%s'' is an unsupported contest name', [AContestName]));
   Halt;
+end;
+
+
+// Determine if the MRCE ini folder exists in user's AppData/Local folder
+function MRCE_Dir_Exists: Boolean;
+var
+  appPath : String;
+  iniFolder : String;
+begin
+  appPath := IncludeTrailingPathDelimiter(GetEnvironmentVariable('LOCALAPPDATA'));
+  iniFolder := appPath + INI_FLDRNAME;
+  if DirectoryExists(iniFolder) then
+    Result := True
+  else
+    Result := False;
 end;
 
 

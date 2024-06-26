@@ -270,12 +270,6 @@ type
     Edit2: TEdit;
     Label3: TLabel;
     Edit3: TEdit;
-    Label25: TLabel;
-    Label26: TLabel;
-    Label28: TLabel;
-    spdbtnRun: TSpeedButton;
-    spdbtnPause: TSpeedButton;
-    spdbtnStop: TSpeedButton;
     panelTopControls: TPanel;
     Label10: TLabel;
     SimContestCombo: TComboBox;
@@ -291,18 +285,24 @@ type
     SpeedButton2: TSpeedButton;
     SpeedButton3: TSpeedButton;
     SpeedButton12: TSpeedButton;
-    Panel8: TPanel;
-    Shape2: TShape;
-    Label24: TLabel;
-    Label27: TLabel;
-    spdbtnRightRIT: TSpeedButton;
-    spdbtnLeftRIT: TSpeedButton;
-    spdbtnResetRIT: TSpeedButton;
     labelStatus: TLabel;
     Label23: TLabel;
     Timer1: TTimer;
     comboActivity: TComboBox;
     Label31: TLabel;
+    spdbtnResetRIT: TSpeedButton;
+    spdbtnRightRIT: TSpeedButton;
+    Label24: TLabel;
+    Label27: TLabel;
+    Panel8: TPanel;
+    Shape2: TShape;
+    spdbtnLeftRIT: TSpeedButton;
+    spdbtnRun: TSpeedButton;
+    spdbtnPause: TSpeedButton;
+    spdbtnStop: TSpeedButton;
+    Label25: TLabel;
+    Label26: TLabel;
+    Label28: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure AlSoundOut1BufAvailable(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -386,7 +386,9 @@ type
     procedure spdbtnLeftRITClick(Sender: TObject);
     procedure spdbtnRunClick(Sender: TObject);
     procedure spdbtnPauseClick(Sender: TObject);
-    procedure Timer1Timer(Sender: TObject); // (K6OK)
+    procedure Timer1Timer(Sender: TObject);
+    procedure comboActivitySelect(Sender: TObject); // (K6OK)
+    procedure comboModePopulate; // (K6OK)
 
   private
     MustAdvance: boolean;       // Controls when Exchange fields advance
@@ -546,6 +548,11 @@ begin
 
   // create a derived TContest of the appropriate type
   SetContest(Ini.SimContest);
+
+  // check to see if .ini folder exists in user's AppData/Local
+  // if not, create it
+  If not Ini.MRCE_Dir_Exists then
+    CreateDir(IncludeTrailingPathDelimiter(GetEnvironmentVariable('LOCALAPPDATA')) + Ini.INI_FLDRNAME);
 
   // start the TTimer for timekeeping (K6OK)
   Timer1.Enabled := True;
@@ -1532,12 +1539,49 @@ end;
 procedure TMainForm.SimContestComboPopulate;
 var
   C: TContestDefinition;
+  i: integer;
 begin
   SimContestCombo.Items.Clear;
-  for C in ContestDefinitions do
+  // if practice or training activity, don't show HST in contest list (K6OK)
+  if comboActivity.ItemIndex <> 2 then
+  begin
+    for C in ContestDefinitions do
     SimContestCombo.Items.Add(C.Name);
+    i := SimContestCombo.Items.IndexOf('HST (High Speed Test)');
+    SimContestCombo.Items.Delete(i);
+  end
+  else
+  begin  // if activity is competition
+    SimContestCombo.Items.Add('HST (High Speed Test)');
+    SimContestCombo.Items.Add('CQ WPX');
+  end;
   SimContestCombo.Sorted:= True;
 end;
+
+procedure TMainForm.comboModePopulate;
+begin
+  comboMode.Items.Clear;
+  comboMode.Text := '';
+  if comboActivity.ItemIndex <> 2 then
+  begin
+    comboMode.Items.Add('Pile-Up');
+    comboMode.Items.Add('Single Calls');
+  end
+  else
+  begin
+    comboMode.Items.Add('Pile-Up');
+    comboMode.ItemIndex :=0;
+  end;
+end;
+
+
+procedure TMainForm.comboActivitySelect(Sender: TObject);
+begin
+  ExchangeEdit.Text := '';
+  SimContestComboPopulate;
+  comboModePopulate;
+end;
+
 
 procedure TMainForm.ComboBox2Change(Sender: TObject);
 begin
@@ -1834,6 +1878,9 @@ begin
   EnableCtl(Edit4,  BStop);
   EnableCtl(ExchangeEdit, BStop and ActiveContest.ExchFieldEditable);
   EnableCtl(SpinEdit2, BStop);
+  EnableCtl(comboActivity, BStop);           // (K6OK)
+  EnableCtl(comboMode, BStop);               // (K6OK)
+
   //SetToolbuttonDown(ToolButton1, not BStop);
   //ToolButton1.Caption := IfThen(BStop, 'Run', 'Stop');
   //ToolButton1.ImageIndex := IfThen(BStop, 0, 10);
@@ -2002,6 +2049,9 @@ begin
    StopTime := Now;
    labelStatus.Caption := 'Status: Stopped';
    SpdBtnVisibility(3);
+   EnableCtl(comboActivity, True);
+   EnableCtl(SimContestCombo, True);
+   EnableCtl(comboMode, True);
 end;
 
 procedure TMainForm.SpdBtnVisibility(valu: integer);
@@ -2167,7 +2217,6 @@ begin
   (Sender as TIdHTTP).Tag:= 1;
   Handled:= true;
 end;
-
 
 procedure TMainForm.IncRit(dF: integer);
 var
