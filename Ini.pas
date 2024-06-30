@@ -431,7 +431,8 @@ begin
       // Main Form size and position  (K6OK)
       MainForm.Top := ReadInteger(SEC_SYS,'fmTop',150);
       MainForm.Left := ReadInteger(SEC_SYS,'fmLeft',150);
-      MainForm.Height := 653; MainForm.Width := 804;
+      MainForm.Height := ReadInteger(SEC_SYS, 'fmHeight', MainForm.Height);
+      MainForm.Width := ReadInteger(SEC_SYS, 'fmWidth', MainForm.Width);
 
       //buffer size
       V := ReadInteger(SEC_SYS, 'BufSize', 0);
