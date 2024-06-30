@@ -531,6 +531,12 @@ begin
   Histo:= THisto.Create(PaintBox1);
 
   AlSoundOut1.BufCount := 4;
+
+  // check to see if .ini folder exists in user's AppData/Local
+  // if not, create it
+  If not Ini.MRCE_Dir_Exists then
+    CreateDir(IncludeTrailingPathDelimiter(GetEnvironmentVariable('LOCALAPPDATA')) + Ini.INI_FLDRNAME);
+
   FromIni(
     procedure (const aMsg : string)
     begin
@@ -548,11 +554,6 @@ begin
 
   // create a derived TContest of the appropriate type
   SetContest(Ini.SimContest);
-
-  // check to see if .ini folder exists in user's AppData/Local
-  // if not, create it
-  If not Ini.MRCE_Dir_Exists then
-    CreateDir(IncludeTrailingPathDelimiter(GetEnvironmentVariable('LOCALAPPDATA')) + Ini.INI_FLDRNAME);
 
   // start the TTimer for timekeeping (K6OK)
   Timer1.Enabled := True;
