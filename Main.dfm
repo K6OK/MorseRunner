@@ -385,7 +385,7 @@ object MainForm: TMainForm
     Left = 0
     Top = 59
     Width = 580
-    Height = 305
+    Height = 316
     Align = alClient
     BevelOuter = bvNone
     BorderStyle = bsSingle
@@ -396,7 +396,7 @@ object MainForm: TMainForm
       Left = 0
       Top = 54
       Width = 576
-      Height = 184
+      Height = 195
       Align = alClient
       Brush.Color = 16711401
       Pen.Style = psClear
@@ -533,7 +533,7 @@ object MainForm: TMainForm
     end
     object RichEdit1: TRichEdit
       Left = 0
-      Top = 260
+      Top = 271
       Width = 576
       Height = 41
       TabStop = False
@@ -611,7 +611,7 @@ object MainForm: TMainForm
     end
     object sbar: TPanel
       Left = 0
-      Top = 238
+      Top = 249
       Width = 576
       Height = 22
       Align = alBottom
@@ -642,7 +642,7 @@ object MainForm: TMainForm
     Left = 580
     Top = 59
     Width = 212
-    Height = 305
+    Height = 316
     Align = alRight
     BevelOuter = bvNone
     TabOrder = 2
@@ -966,18 +966,17 @@ object MainForm: TMainForm
   end
   object Panel12: TPanel
     Left = 0
-    Top = 374
+    Top = 385
     Width = 792
-    Height = 76
+    Height = 65
     Align = alBottom
     BevelInner = bvRaised
     BevelOuter = bvLowered
     TabOrder = 3
-    ExplicitTop = 373
-    ExplicitWidth = 788
+    ExplicitTop = 380
     object Label1: TLabel
       Left = 74
-      Top = 7
+      Top = 5
       Width = 21
       Height = 17
       Caption = 'Call'
@@ -990,7 +989,7 @@ object MainForm: TMainForm
     end
     object Label2: TLabel
       Left = 235
-      Top = 7
+      Top = 5
       Width = 22
       Height = 17
       Caption = 'RST'
@@ -1003,7 +1002,7 @@ object MainForm: TMainForm
     end
     object Label3: TLabel
       Left = 394
-      Top = 7
+      Top = 5
       Width = 18
       Height = 17
       Caption = 'Nr.'
@@ -1016,7 +1015,7 @@ object MainForm: TMainForm
     end
     object spdbtnResetRIT: TSpeedButton
       Left = 744
-      Top = 34
+      Top = 26
       Width = 33
       Height = 20
       Caption = 'Reset'
@@ -1030,7 +1029,7 @@ object MainForm: TMainForm
     end
     object spdbtnRightRIT: TSpeedButton
       Left = 720
-      Top = 34
+      Top = 26
       Width = 20
       Height = 20
       Caption = '4'
@@ -1046,7 +1045,7 @@ object MainForm: TMainForm
     end
     object Label24: TLabel
       Left = 663
-      Top = 23
+      Top = 15
       Width = 16
       Height = 13
       Caption = 'RIT'
@@ -1059,7 +1058,7 @@ object MainForm: TMainForm
     end
     object Label27: TLabel
       Left = 651
-      Top = 55
+      Top = 44
       Width = 38
       Height = 15
       Alignment = taCenter
@@ -1074,7 +1073,7 @@ object MainForm: TMainForm
     end
     object spdbtnLeftRIT: TSpeedButton
       Left = 600
-      Top = 34
+      Top = 26
       Width = 20
       Height = 20
       Caption = '3'
@@ -1089,7 +1088,7 @@ object MainForm: TMainForm
     end
     object Edit1: TEdit
       Left = 74
-      Top = 28
+      Top = 24
       Width = 150
       Height = 32
       AutoSelect = False
@@ -1108,7 +1107,7 @@ object MainForm: TMainForm
     end
     object Edit2: TEdit
       Left = 230
-      Top = 28
+      Top = 24
       Width = 150
       Height = 32
       AutoSelect = False
@@ -1126,7 +1125,7 @@ object MainForm: TMainForm
     end
     object Edit3: TEdit
       Left = 386
-      Top = 28
+      Top = 24
       Width = 150
       Height = 32
       AutoSelect = False
@@ -1144,9 +1143,9 @@ object MainForm: TMainForm
     end
     object Panel8: TPanel
       Left = 620
-      Top = 40
+      Top = 32
       Width = 100
-      Height = 10
+      Height = 8
       Cursor = crHandPoint
       Hint = 'RIT -- Use Up/Down keys or Mouse Wheel; Hold Control key for BW.'
       BevelOuter = bvLowered
@@ -1156,7 +1155,7 @@ object MainForm: TMainForm
       OnMouseDown = Panel8MouseDown
       object Shape2: TShape
         Left = 40
-        Top = 2
+        Top = 1
         Width = 20
         Height = 7
         Cursor = crHandPoint
@@ -1167,7 +1166,7 @@ object MainForm: TMainForm
   end
   object Panel5: TPanel
     Left = 0
-    Top = 364
+    Top = 375
     Width = 792
     Height = 10
     Align = alBottom

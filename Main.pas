@@ -2053,6 +2053,9 @@ begin
    EnableCtl(comboActivity, True);
    EnableCtl(SimContestCombo, True);
    EnableCtl(comboMode, True);
+   EnableCtl(ExchangeEdit, True);
+   EnableCtl(SpinEdit2, True);
+   EnableCtl(Edit4, True);
 end;
 
 procedure TMainForm.SpdBtnVisibility(valu: integer);
