@@ -388,7 +388,8 @@ type
     procedure spdbtnPauseClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure comboActivitySelect(Sender: TObject); // (K6OK)
-    procedure comboModePopulate; // (K6OK)
+    procedure comboModePopulate;
+    procedure SpeedButton12Click(Sender: TObject); // (K6OK)
 
   private
     MustAdvance: boolean;       // Controls when Exchange fields advance
@@ -868,7 +869,7 @@ begin
     VK_F10:
       if (ssAlt in Shift) or  (ssCtrl in Shift) then IncSpeed;
 
-    VK_F11:
+    VK_F12:
       WipeBoxes;
 
     else
@@ -1544,14 +1545,19 @@ var
 begin
   SimContestCombo.Items.Clear;
   // if practice or training activity, don't show HST in contest list (K6OK)
-  if comboActivity.ItemIndex <> 2 then
+  if comboActivity.ItemIndex < 1 then
   begin
     for C in ContestDefinitions do
     SimContestCombo.Items.Add(C.Name);
     i := SimContestCombo.Items.IndexOf('HST (High Speed Test)');
     SimContestCombo.Items.Delete(i);
-  end
-  else
+  end;
+  if comboActivity.ItemIndex = 1 then
+  begin  // if activity is training
+    SimContestCombo.Items.Add('CQ WPX');
+    SimContestCombo.Items.Add('K1USN Slow Speed Test');
+  end;
+  if comboActivity.ItemIndex = 2 then
   begin  // if activity is competition
     SimContestCombo.Items.Add('HST (High Speed Test)');
     SimContestCombo.Items.Add('CQ WPX');
@@ -2063,6 +2069,12 @@ begin
   spdbtnRun.Enabled := (valu in [2, 3]);
   spdbtnPause.Enabled := (valu = 1);
   spdbtnStop.Enabled := (valu in [1, 2]);
+end;
+
+// Temporary to enable F12 Wipe Boxes like N1MM  (K6OK)
+procedure TMainForm.SpeedButton12Click(Sender: TObject);
+begin
+  WipeBoxes;
 end;
 
 // Emits an event every 250 mSec for timekeeping

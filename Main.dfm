@@ -200,7 +200,7 @@ object MainForm: TMainForm
       OnClick = SendClick
     end
     object SpeedButton1: TSpeedButton
-      Tag = 5
+      Tag = 9
       Left = 6
       Top = 84
       Width = 85
@@ -215,9 +215,9 @@ object MainForm: TMainForm
       OnClick = SendClick
     end
     object SpeedButton2: TSpeedButton
-      Tag = 6
+      Tag = 10
       Left = 97
-      Top = 84
+      Top = 83
       Width = 85
       Height = 31
       Caption = 'F10  ---'
@@ -230,7 +230,7 @@ object MainForm: TMainForm
       OnClick = SendClick
     end
     object SpeedButton3: TSpeedButton
-      Tag = 7
+      Tag = 11
       Left = 188
       Top = 84
       Width = 85
@@ -245,19 +245,19 @@ object MainForm: TMainForm
       OnClick = SendClick
     end
     object SpeedButton12: TSpeedButton
-      Tag = 8
+      Tag = 12
       Left = 279
-      Top = 84
+      Top = 83
       Width = 85
       Height = 31
-      Caption = 'F12  ---'
+      Caption = 'F12  Wipe'
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
       Font.Height = -13
       Font.Name = 'Segoe UI'
       Font.Style = []
       ParentFont = False
-      OnClick = SendClick
+      OnClick = SpeedButton12Click
     end
     object Label23: TLabel
       Left = 426
@@ -391,7 +391,7 @@ object MainForm: TMainForm
     BorderStyle = bsSingle
     TabOrder = 1
     ExplicitWidth = 576
-    ExplicitHeight = 304
+    ExplicitHeight = 315
     object Shape1: TShape
       Left = 0
       Top = 54
@@ -549,7 +549,7 @@ object MainForm: TMainForm
       ScrollBars = ssVertical
       TabOrder = 1
       Visible = False
-      ExplicitTop = 259
+      ExplicitTop = 270
       ExplicitWidth = 572
     end
     object ListView2: TListView
@@ -620,7 +620,7 @@ object MainForm: TMainForm
       ParentBackground = False
       TabOrder = 2
       Visible = False
-      ExplicitTop = 237
+      ExplicitTop = 248
       ExplicitWidth = 572
       object labelStatus: TLabel
         Left = 488
@@ -647,7 +647,7 @@ object MainForm: TMainForm
     BevelOuter = bvNone
     TabOrder = 2
     ExplicitLeft = 576
-    ExplicitHeight = 304
+    ExplicitHeight = 315
     object spdbtnRun: TSpeedButton
       Left = 52
       Top = 273
@@ -973,7 +973,8 @@ object MainForm: TMainForm
     BevelInner = bvRaised
     BevelOuter = bvLowered
     TabOrder = 3
-    ExplicitTop = 380
+    ExplicitTop = 384
+    ExplicitWidth = 788
     object Label1: TLabel
       Left = 74
       Top = 5
@@ -1029,10 +1030,10 @@ object MainForm: TMainForm
     end
     object spdbtnRightRIT: TSpeedButton
       Left = 720
-      Top = 26
+      Top = 22
       Width = 20
       Height = 20
-      Caption = '4'
+      Caption = '5'
       Flat = True
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -1076,7 +1077,7 @@ object MainForm: TMainForm
       Top = 26
       Width = 20
       Height = 20
-      Caption = '3'
+      Caption = '6'
       Flat = True
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -1172,7 +1173,7 @@ object MainForm: TMainForm
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 4
-    ExplicitTop = 363
+    ExplicitTop = 374
     ExplicitWidth = 788
   end
   object panelTopControls: TPanel
