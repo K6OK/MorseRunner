@@ -8,6 +8,7 @@ unit Ini;
 interface
 
 uses
+  ExchFields,
   IniFiles;
 
 const
@@ -26,7 +27,7 @@ const
 type
   // Adding a contest: Append new TSimContest enum value for each contest.
   TSimContest = (scWpx, scCwt, scFieldDay, scNaQp, scHst, scCQWW, scArrlDx,
-                 scSst, scAllJa, scAcag, scIaruHf);
+                 scSst, scAllJa, scAcag, scIaruHf, scArrlSS);
 
   // TPgmState: Track current state of program as running, paused,
   // running after a pause, or stopped
@@ -35,14 +36,6 @@ type
   TPgmState = (psRun, psPause, psRunAfterPause, psStop);
 
   TRunMode = (rmPileup, rmSingle, rmWpx, rmHst);
-
-  // Exchange Field #1 types
-  TExchange1Type = (etRST, etOpName, etFdClass);
-
-  // Exchange Field #2 Types
-  TExchange2Type = (etSerialNr, etGenericField, etArrlSection, etStateProv,
-                    etCqZone, etItuZone, etAge, etPower, etJaPref, etJaCity,
-                    etNaQpExch2, etNaQpNonNaExch2);
 
   // Serial NR types
   TSerialNRTypes = (snStartContest, snMidContest, snEndContest, snCustomRange);
@@ -214,7 +207,22 @@ const
      ExchFieldEditable: True;
      ExchDefault: '5NN 6';
      Msg: '''RST <Itu-zone|IARU Society>'' (e.g. 5NN 6)';
-     T:scIaruHf)
+     T:scIaruHf),
+
+    (Name: 'ARRL Sweepstakes';
+     Key: 'SSCW';
+     ExchType1: etSSNrPrecedence;   // full exchange info is entered via Exch2; or my serial number (sent)
+     ExchType2: etSSCheckSection;
+     ExchFieldEditable: True;
+     ExchDefault: 'A 72 OR';
+     Msg: '''[#|123] <precedence> <check> <section>'' (e.g. A 72 OR)';
+     T:scArrlSS)
+     // Entered Exchange: # <precedence> * <check> <section>
+     // where precedence={Q,A,B,U,M,S}, check='year licenced', ARRL/RAC section.
+     // Sent Exchange: # A W7SST 72 OR
+     // Fields: NR:numeric, Prec:string, Check:numeric, Section:string
+     // N1MM default ordering w/ call history: 72 OR. I type 123A
+     // N1MM automatic rendering: 123A <call> 72 OR
   );
 
 var
@@ -253,6 +261,7 @@ var
   NoActivityCnt: integer=0;
   NoStopActivity: integer=0;
   GetWpmUsesGaussian: boolean = false;
+  ShowCheckSection: integer=50;
 
   Duration: integer = 30;
   RunMode: TRunMode = rmPileUp;      // was rmStop  (K6OK)
@@ -432,6 +441,7 @@ begin
       WpmStepRate := Max(1, Min(20, ReadInteger(SEC_SET, 'WpmStepRate', WpmStepRate)));
       RitStepIncr := ReadInteger(SEC_SET, 'RitStepIncr', RitStepIncr);
       RitStepIncr := Max(-500, Min(500, RitStepIncr));
+      ShowCheckSection := ReadInteger(SEC_SET, 'ShowCheckSection', ShowCheckSection);
 
       // [Debug]
       DebugExchSettings := ReadBool(SEC_DBG, 'DebugExchSettings', DebugExchSettings);
@@ -514,6 +524,7 @@ begin
       WriteInteger(SEC_SET, 'FarnsworthCharacterRate', FarnsworthCharRate);
       WriteInteger(SEC_SET, 'WpmStepRate', WpmStepRate);
       WriteInteger(SEC_SET, 'RitStepIncr', RitStepIncr);
+      WriteInteger(SEC_SET, 'ShowCheckSection', ShowCheckSection);
 
     finally
       Free;

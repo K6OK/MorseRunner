@@ -9,6 +9,7 @@ interface
 
 uses
   SndTypes, Station, StnColl, MyStn, Ini, Log, System.Classes,
+  ExchFields,
   MovAvg, Mixers, VolumCtl, DxStn;
 
 type
@@ -25,6 +26,8 @@ type
     constructor Create;
     function IsReloadRequired(const AUserCallsign : String) : boolean;
     procedure SetLastLoadCallsign(const AUserCallsign : String);
+    function ValidateExchField(const FieldDef: PFieldDefinition;
+      const Avalue: string) : Boolean;
 
   public
     BlockNumber: integer;
@@ -49,6 +52,9 @@ type
     function PickCallOnly : string;
 
     function OnSetMyCall(const AUserCallsign : string; out err : string) : boolean; virtual;
+    function ValidateMyExchange(const AExchange: string;
+      ATokens: TStringList;
+      out AExchError: string): boolean; virtual;
     function OnContestPrepareToStart(const AUserCallsign: string;
       const ASentExchange : string) : Boolean; virtual;
     procedure SerialNrModeChanged; virtual;
@@ -67,7 +73,10 @@ type
     procedure SendMsg(const AStn: TStation; const AMsg: TStationMessage); virtual;
     procedure SendText(const AStn: TStation; const AMsg: string); virtual;
 
-    function ValidateEnteredQsoData(const ACall, AExch1, AExch2: string) : boolean; virtual;
+    function CheckEnteredCallLength(const ACall: string;
+      out AExchError: String) : boolean; virtual;
+    function ValidateEnteredExchange(const ACall, AExch1, AExch2: string;
+      out AExchError: String) : boolean; virtual;
     procedure SaveEnteredExchToQso(var Qso: TQso; const AExch1, AExch2: string); virtual;
     procedure FindQsoErrors(var Qso: TQso; var ACorrections: TStringList);
     function ExtractMultiplier(Qso: PQso) : string; virtual;
@@ -85,7 +94,8 @@ implementation
 
 uses
   SysUtils, RndFunc, Math, DxOper,
-  Main, CallLst, ARRL;
+  PerlRegEx,
+  Main, CallLst, DXCC;
 
 { TContest }
 
@@ -224,6 +234,66 @@ begin
   Me.SentExchTypes:= GetSentExchTypes(skMyStation, AUserCallsign);
 
   Result:= True;
+end;
+
+
+{
+  Parse into two strings [Exch1, Exch2].
+  Validate each string and set error string in AExchError.
+  Return True upon success; False otherwise.
+}
+function TContest.ValidateMyExchange(const AExchange: string;
+  ATokens: TStringList;
+  out AExchError: string): boolean;
+var
+  SentExchTypes : TExchTypes;
+  Field1Def: PFieldDefinition;
+  Field2Def: PFieldDefinition;
+begin
+  SentExchTypes := Self.Me.SentExchTypes;
+  Field1Def := @Exchange1Settings[SentExchTypes.Exch1];
+  Field2Def := @Exchange2Settings[SentExchTypes.Exch2];
+
+  // parse into two strings [Exch1, Exch2]
+  ATokens.Clear;
+  ExtractStrings([' '], [], PChar(AExchange), ATokens);
+  if ATokens.Count = 0 then
+    ATokens.AddStrings(['', '']);
+  if ATokens.Count = 1 then
+    ATokens.AddStrings(['']);
+
+  // validate sent exchange strings
+  Result := ValidateExchField(Field1Def, ATokens[0]) and
+            ValidateExchField(Field2Def, ATokens[1]);
+
+  if not Result then
+    AExchError := Format('Invalid exchange: ''%s'' - expecting %s.',
+          [AExchange, ActiveContest.Msg]);
+end;
+
+function TContest.ValidateExchField(const FieldDef: PFieldDefinition;
+  const Avalue: string) : Boolean;
+var
+  reg: TPerlRegEx;
+  s: string;
+begin
+  if SimContest = scNaQp then begin
+    // special case - I can't figure out how to match an empty string,
+    // so manually check for an optional string.
+    s := FieldDef.R;
+    Result := s.StartsWith('()|(') and Avalue.IsEmpty;
+    if Result then Exit;
+  end;
+
+  reg := TPerlRegEx.Create();
+  try
+    reg.Subject := UTF8Encode(Avalue);
+    s:= '^(' + FieldDef.R + ')$';
+    reg.RegEx:= UTF8Encode(s);
+    Result:= Reg.Match;
+  finally
+    reg.Free;
+  end;
 end;
 
 
@@ -380,10 +450,30 @@ end;
 
 
 {
-  ValidateEnteredQsoData is called by SaveQSO (see Log.pas).
-  SaveQSO is called when the QSO is complete and the user has sent 'TU'.
+  Performs simple length check on a callsign.
+  Returns true for callsigns with 3 or more characters; false otherwise.
+  Upon error, AExchError will contain a simple error message.
 }
-function TContest.ValidateEnteredQsoData(const ACall, AExch1, AExch2: string) : boolean;
+function TContest.CheckEnteredCallLength(const ACall: string;
+  out AExchError: String) : boolean;
+begin
+  Result := ACall.Length >= 3;
+  if not Result then
+    AExchError := 'Invalid callsign';
+end;
+
+
+{
+  ValidateEnteredExchange is called prior to sending the final 'TU' and calling
+  SaveQSO (see Log.pas). The basic validation is a length test where each
+  exchange is checked against a minimum length requirement.
+  This is contest with original 1.68 behaviors.
+
+  This virtual function can be overriden for complex exchange information
+  (e.g. ARRL Sweepstakes).
+}
+function TContest.ValidateEnteredExchange(const ACall, AExch1, AExch2: string;
+  out AExchError: String) : boolean;
   // Adding a contest: validate contest-specific exchange fields
   //validate Exchange 1 (Edit2) field lengths
   function ValidateExchField1(const text: string): Boolean;
@@ -421,7 +511,15 @@ function TContest.ValidateEnteredQsoData(const ACall, AExch1, AExch2: string) : 
   end;
 
 begin
-  Result := ValidateExchField1(AExch1) and ValidateExchField2(AExch2);
+  if not ValidateExchField1(AExch1) then
+    AExchError := format('Missing/Invalid %s',
+      [Exchange1Settings[Mainform.RecvExchTypes.Exch1].C])
+  else if not ValidateExchField2(AExch2) then
+    AExchError := format('Missing/Invalid %s',
+      [Exchange2Settings[Mainform.RecvExchTypes.Exch2].C])
+  else
+    AExchError := '';
+  Result := AExchError.IsEmpty;
 end;
 
 
@@ -449,7 +547,7 @@ begin
       etGenericField:Qso.Exch2 := AExch2;
       etArrlSection: Qso.Exch2 := AExch2;
       etStateProv:   Qso.Exch2 := AExch2;
-      etCqZone:      Qso.NR := StrToInt(AExch2);
+      etCqZone:      Qso.Exch2 := AExch2;
       etItuZone:     Qso.Exch2 := AExch2;
       //etAge:
       etPower:       Qso.Exch2 := AExch2;
@@ -714,6 +812,7 @@ begin
              end;
           if z=0 then begin
              // No maximo fica 3 cq sem contesters
+             // (At most 3 cq without contesters)
              inc(NoActivityCnt);
              if ((NoActivityCnt > 2) or (NoStopActivity > 0) )  then begin
                  Stations.AddCaller;

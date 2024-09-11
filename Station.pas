@@ -8,7 +8,9 @@ unit Station;
 interface
 
 uses
-  Classes, SndTypes, Ini;
+  Classes, SndTypes,
+  ExchFields,
+  Ini;
 
 const
   NEVER = MAXINT;
@@ -91,6 +93,9 @@ type
     NR, RST: integer;
     MyCall, HisCall: string;
     OpName: string;
+    Prec: string;   // Sweepstakes precedence character (one of: QABUMS)
+    Chk: integer;   // Sweepstakes check value (first year licensed)
+    Sect: string;   // Sweepstakes Section value (ARRL/RAC Section)
     Exch1: string;  // Exchange field 1 (e.g. class, name, etc.)
     Exch2: string;  // Exchange field 2 (e.g. zone, state/prov, section, grid, etc.)
     UserText: string; // club name or description (from fdHistory file)
@@ -359,7 +364,7 @@ begin
   // Adding a contest: TStation.NrAsText(), converts <#> to exchange (usually '<exch1> <exch2>'). Inject LID errors.
   case SimContest of
     scCQWW:
-      Result := Format('%s %d', [Exch1, NR]);     // <RST> <CQ-Zone>
+      Result := Format('%s %s', [Exch1, Exch2]);  // <RST> <CQ-Zone>
     scCwt:
       Result := Format('%s  %s', [Exch1, Exch2]); // <Name> <NR|State|Prov|Prefix>
     scSst:
@@ -375,6 +380,11 @@ begin
       Result := Format('%s %s', [Exch1, Exch2]);
     scAllJa, scAcag:
       Result := Format('%s %s', [Exch1, Exch2]);
+    scArrlSS:
+      if Call = MyCall then
+        Result := Format('%d%s %s %s', [NR, Exch1, MyCall, Exch2])
+      else
+        Result := Format('%s %s %s', [Exch1, MyCall, Exch2]);
     else
       if Call = MyCall then
         Result := Format('%d%.3d', [RST, NR])
@@ -382,7 +392,7 @@ begin
         var pRange : PSerialNRSettings := @Ini.SerialNRSettings[Ini.SerialNR];
         // R1 is a random number assigned when this station was created.
         // It provides a consistent result since this function is called
-        // mutliple times.
+        // multiple times.
         if R1 < 0.5 then // add leading zeros
           digits := pRange.minDigits
         else
@@ -438,14 +448,27 @@ begin
     if not IsDxStation then begin
       Result := StringReplace(Result, '0', 'T', [rfReplaceAll]);
       Result := StringReplace(Result, '9', 'N', [rfReplaceAll]);
+      if SentExchTypes.Exch2 = etCqZone then
+        Result := StringReplace(Result, '1', 'A', [rfReplaceAll]);
     end
-    else if Random < 0.4
+    else if (Random < 0.4) and (SentExchTypes.Exch2 <> etCqZone)
       then Result := StringReplace(Result, '0', 'O', [rfReplaceAll])
-    else if Random < 0.97
+    else if (Random < 0.97) and (SentExchTypes.Exch2 <> etCqZone)
       then Result := StringReplace(Result, '0', 'T', [rfReplaceAll]);
 
-    if Random < 0.97
-      then Result := StringReplace(Result, '9', 'N', [rfReplaceAll]);
+    // this function needs to be refactored so it can operate individual
+    // parts of the exchange.
+    if (SentExchTypes.Exch2 = etCqZone) then
+      begin
+        if R1 < 0.70 then
+          begin
+            Result := StringReplace(Result, '0', 'T', [rfReplaceAll]);
+            Result := StringReplace(Result, '1', 'A', [rfReplaceAll]);
+            Result := StringReplace(Result, '9', 'N', [rfReplaceAll]);
+          end;
+      end
+    else if Random < 0.97 then
+      Result := StringReplace(Result, '9', 'N', [rfReplaceAll]);
     end;
 
   // for JARL ALLJA, ACAG contest

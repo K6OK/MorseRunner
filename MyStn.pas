@@ -33,7 +33,8 @@ type
 implementation
 
 uses
-  SysUtils, RndFunc, Ini, MorseKey, Contest, Main, ARRL;
+  ExchFields,
+  SysUtils, RndFunc, Ini, MorseKey, Contest, Main, DXCC;
 
 { TMyStation }
 

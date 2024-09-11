@@ -563,7 +563,7 @@ object MainForm: TMainForm
       Columns = <
         item
           Caption = 'UTC'
-          Width = 84
+          Width = 80
         end
         item
           Caption = 'Call'
