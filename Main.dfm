@@ -200,12 +200,12 @@ object MainForm: TMainForm
       OnClick = SendClick
     end
     object SpeedButton1: TSpeedButton
-      Tag = 9
+      Tag = 19
       Left = 6
       Top = 84
       Width = 85
       Height = 31
-      Caption = 'F9  ---'
+      Caption = 'F9 Nr?'
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
       Font.Height = -13
@@ -1015,8 +1015,8 @@ object MainForm: TMainForm
       ParentFont = False
     end
     object spdbtnResetRIT: TSpeedButton
-      Left = 744
-      Top = 26
+      Left = 746
+      Top = 24
       Width = 33
       Height = 20
       Caption = 'Reset'
@@ -1483,9 +1483,9 @@ object MainForm: TMainForm
         OnClick = SendClick
       end
       object NRQM: TMenuItem
-        Tag = 16
+        Tag = 19
         Caption = 'NR?'
-        ShortCut = 123
+        ShortCut = 120
         OnClick = SendClick
       end
     end

@@ -21,7 +21,7 @@ uses
 
 const
   WM_TBDOWN = WM_USER+1;
-  sVersion: String = '1.85p';  { Sets version strings in UI panel. }
+  sVersion: String = '1.90p';  { Sets version strings in UI panel. }
 
 type
 
@@ -850,12 +850,18 @@ begin
 }
 
     VK_UP:
-      if GetKeyState(VK_CONTROL) >= 0 then IncRit(1)
-      else if RunMode <> rmHst then SetBw(ComboBox2.ItemIndex+1);
+      begin
+        if GetKeyState(VK_CONTROL) >= 0 then IncRit(1)
+          else if RunMode <> rmHst then SetBw(ComboBox2.ItemIndex+1);
+        if (ssShift in Shift) then IncRit(0);    //Shift-UpArrow resets RIT
+      end;
 
     VK_DOWN:
-      if GetKeyState(VK_CONTROL) >= 0  then IncRit(-1)
-      else if RunMode <> rmHst then SetBw(ComboBox2.ItemIndex-1);
+      begin
+        if GetKeyState(VK_CONTROL) >= 0  then IncRit(-1)
+          else if RunMode <> rmHst then SetBw(ComboBox2.ItemIndex-1);
+        if (ssShift in Shift) then IncRit(0);    //Shift-DownArrow resets RIT
+      end;
 
     VK_PRIOR: //PgUp
       IncSpeed;
@@ -864,12 +870,13 @@ begin
       DecSpeed;
 
     VK_F9:
-      if (ssAlt in Shift) or  (ssCtrl in Shift) then DecSpeed;
+      if Shift = [] then SendMsg(msgNrQm)       // F9 Sends "Nr?"   K6OK
+      else if (ssAlt in Shift) or  (ssCtrl in Shift) then DecSpeed;
 
     VK_F10:
       if (ssAlt in Shift) or  (ssCtrl in Shift) then IncSpeed;
 
-    VK_F12:
+    VK_F12:                            // F12 clears entry fields   K6OK
       WipeBoxes;
 
     else
