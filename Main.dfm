@@ -563,7 +563,7 @@ object MainForm: TMainForm
       Columns = <
         item
           Caption = 'UTC'
-          Width = 84
+          Width = 80
         end
         item
           Caption = 'Call'
@@ -1141,6 +1141,7 @@ object MainForm: TMainForm
       TabOrder = 2
       OnEnter = Edit3Enter
       OnKeyPress = Edit3KeyPress
+      OnKeyUp = Edit3KeyUp
     end
     object Panel8: TPanel
       Left = 620

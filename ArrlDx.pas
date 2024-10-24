@@ -51,7 +51,8 @@ type
 implementation
 
 uses
-  SysUtils, PerlRegEx, pcre, ARRL, CallLst,
+  SysUtils, DXCC, CallLst,
+  ExchFields,
   Ini, Main;
 
 

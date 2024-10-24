@@ -38,6 +38,7 @@ implementation
 uses
   SysUtils, Classes, RndFunc, Dialogs,
   Main,     // for Mainform
+  ExchFields, // for TExchField
   CallLst, Log, Ini, Contest;
 
 { TDxStation }
@@ -216,7 +217,7 @@ begin
   if BDebugExchSettings and (AMsg in [msgNR, msgR_NR, msgR_NR2,
     msgDeMyCallNr1, msgDeMyCallNr2, msgMyCallNr1, msgMyCallNr2]) then
   begin
-    if (Mainform.Edit2.Text = '') then
+    if (Mainform.Edit2.Text = '') and not (SimContest in [scArrlSS]) then
       Mainform.Edit2.Text := Exch1;
     if (Mainform.Edit3.Text = '') and
       ((SimContest <> scNaQp) or (Exch2 <> 'DX')) then
@@ -239,6 +240,10 @@ begin
       etRST: TrueExch1 := IntToStr(Self.RST);
       etOpName: TrueExch1 := Self.OpName;
       etFdClass: TrueExch1 := Self.Exch1;
+      etSSNrPrecedence: begin
+        TrueNR := Self.NR;
+        TruePrec := Self.Prec;
+      end;
       else
         assert(false);
     end;
@@ -246,7 +251,7 @@ begin
     case SentExchTypes.Exch2 of
       etSerialNr: TrueExch2 := IntToStr(Self.NR);
       etGenericField: TrueExch2 := Self.Exch2;
-      etCqZone: TrueExch2 := IntToStr(Self.NR);
+      etCqZone: TrueExch2 := Self.Exch2;
       etItuZone: TrueExch2 := Self.Exch2;
       etArrlSection: TrueExch2 := Self.Exch2;
       etStateProv: TrueExch2 := Self.Exch2;
@@ -254,6 +259,10 @@ begin
       etJaPref: TrueExch2 := Self.Exch2;
       etJaCity: TrueExch2 := Self.Exch2;
       etNaQpExch2, etNaQpNonNaExch2: TrueExch2 := Self.Exch2;
+      etSSCheckSection: begin
+        TrueCheck := Self.Chk;    // check (e.g. 72)
+        TrueSect := Self.Sect;    // section (e.g. OR)
+      end
       else
         assert(false);
     end;
