@@ -1163,6 +1163,7 @@ object MainForm: TMainForm
       TabOrder = 2
       OnEnter = Edit3Enter
       OnKeyPress = Edit3KeyPress
+      OnKeyUp = Edit3KeyUp
     end
   end
   object Panel5: TPanel

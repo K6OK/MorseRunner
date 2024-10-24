@@ -8,7 +8,8 @@ unit Log;
 interface
 
 uses
-  Classes, Controls, ExtCtrls;
+  System.UITypes,     // TColor
+  Classes, ExtCtrls;
 
 procedure SaveQso;
 procedure LastQsoToScreen;
@@ -25,7 +26,11 @@ procedure SetExchColumns(AExch1ColPos, AExch2ColPos: integer;
 procedure ScoreTableInsert(const ACol1, ACol2, ACol3, ACol4, ACol5, ACol6: string; const ACol7: string = ''; const ACol8: string = '');
 procedure ScoreTableUpdateCheck;
 function FormatScore(const AScore: integer):string;
-procedure UpdateSbar(const ACallsign: string);
+procedure UpdateSbar;
+procedure SbarUpdateStationInfo(const ACallsign: string);
+procedure SBarUpdateSummary(const AExchSummary: String);
+procedure SBarUpdateDebugMsg(const AMsgText: string);
+procedure DisplayError(const AExchError: string; const AColor: TColor);
 function ExtractCallsign(Call: string): string;
 function ExtractPrefix(Call: string; DeleteTrailingLetters: boolean = True): string;
 {$ifdef DEBUG}
@@ -117,7 +122,12 @@ var
   VerifiedPoints:   integer;   // accumulated verified QSO points total
   CallSent: boolean; // msgHisCall has been sent; cleared upon edit.
   NrSent: boolean;   // msgNR has been sent; cleared after qso is completed.
-  ShowCorrections: boolean;    // show exchange correction column.
+  ShowCorrections: boolean;   // show exchange correction column.
+  SBarDebugMsg: String;         // sbar debug message
+  SBarStationInfo: String;    // sbar station info (UserText from call history file)
+  SBarSummaryMsg: String;     // sbar exchange summary (ARRL SS)
+  SBarErrorMsg: String;       // sbar exchange error
+  SBarErrorColor: TColor;     // sbar exchange error color
   Histo: THisto;
 
   // the following column index values are used to set error flags in TQso.ColumnErrorFlags
@@ -139,6 +149,7 @@ uses
   Windows, SysUtils, RndFunc, Math,
   Graphics,     // for TColor
   ExchFields,   // for exchange field types
+  Controls,
   StdCtrls, PerlRegEx, StrUtils,
   Contest, Main, DxStn, DxOper, Ini, Station, MorseKey;
 
@@ -181,7 +192,7 @@ const
   CQWW_RST_COL    = 'RST,4,L';
   CQ_ZONE_COL     = 'Zone,4,L';
   SS_CALL_COL     = 'Call,9,L';
-  SS_PREC_COL     = 'Pr,2.5,C';
+  SS_PREC_COL     = 'Pr,2.5,L';
   SS_CHECK_COL    = 'Chk,3.25,C';
 
 {$ifdef DEBUG}
@@ -195,6 +206,7 @@ var
 {$ifdef DEBUG}
   Indent: Integer = 0;    // used by DebugLnEnter/DebugLnExit
 {$endif}
+  SBarLastCallsign: String;       // used to optimize SBrSetStationInfo
 
 constructor THisto.Create(APaintBox: TPaintBOx);
 begin
@@ -285,6 +297,7 @@ var
   Name: string;
   Width: integer;
   Alignment: TAlignment;
+  FS: TFormatSettings;
 
   // return the column name from a column definition string
   function GetColumnName(const AColDef: string): string;
@@ -294,6 +307,7 @@ var
 
 begin
   tl := TStringList.Create('''',',');
+  FS := TFormatSettings.Create('en-US');  // DecimalPoint = '.'
   try
     // retain initial log column widths (used to restore column widths)
     if not ScaleTableInitialized then
@@ -321,7 +335,7 @@ begin
       if I = 0 then // use existing width for UTC Column
         Width := MainForm.ListView2.Column[I].Width
       else
-        Width := Round(tl[1].ToSingle * LogColWidthPerChar + LogColPadding*LogColScaling);
+        Width := Round(StrToFloat(tl[1], FS) * LogColWidthPerChar + LogColPadding*LogColScaling);
       Alignment := taLeftJustify;
       case tl[2][1] of
         'L': Alignment := taLeftJustify;
@@ -390,31 +404,107 @@ begin
   end;
   MainForm.ListView2.Items.EndUpdate;
 
-  //UpdateSbar(MainForm.ListView2.Items.Count);
   MainForm.ListView2.Perform(WM_VSCROLL, SB_BOTTOM, 0);
 end;
 
 //Update Callsign info
-procedure UpdateSbar(const ACallsign: string);
+procedure SbarUpdateStationInfo(const ACallsign: string);
 var
   s: string;
 begin
+  if ACallSign = SBarLastCallsign then Exit;
+  SBarLastCallsign := ACallsign;
+
   s:= '';
   if not ACallsign.IsEmpty then
   begin
-    // Adding a contest: UpdateSbar - update status bar with station info (e.g. FD shows UserText)
+    // Adding a contest: SbarUpdateStationInfo - update status bar with station info (e.g. FD shows UserText)
     s := Tst.GetStationInfo(ACallsign);
 
     // '&' are suppressed in this control; replace with '&&'
     s:= StringReplace(s, '&', '&&', [rfReplaceAll]);
   end;
 
-  // during debug, use status bar to show CW stream
-  Mainform.sbar.Font.Color := clDefault;
-  if not s.IsEmpty and (BDebugCwDecoder or BDebugGhosting) then
-    Mainform.sbar.Caption := LeftStr(Mainform.sbar.Caption, 40) + ' -- ' + s
+  SBarStationInfo := s;
+  UpdateSbar;
+end;
+
+
+procedure SBarUpdateSummary(const AExchSummary: String);
+begin
+  if SBarSummaryMsg = AExchSummary then Exit;
+
+  SBarSummaryMsg := AExchSummary;
+  UpdateSbar;
+end;
+
+
+
+procedure SBarUpdateDebugMsg(const AMsgText: string);
+begin
+  if SBarDebugMsg = AMsgText then Exit;
+
+  if AMsgText.IsEmpty then
+    SBarDebugMsg := ''
   else
-    MainForm.sbar.Caption := '  ' + s;
+    SBarDebugMsg := (AMsgText + '; ' + SBarDebugMsg).Substring(0, 40);
+  UpdateSbar;
+end;
+
+// Refresh Status Bar
+// [<Exchange Summary> --] [(Error | UserText)] [>> Debug]
+procedure UpdateSbar;
+var
+  S: String;
+begin
+  // optional exchange summary...
+  if Ini.ShowExchangeSummary <> 0 then
+    if SimContest in [scArrlSS] then
+      case Ini.ShowExchangeSummary of
+        1:
+          if SBarSummaryMsg.IsEmpty then
+            Mainform.Label3.Caption := Exchange2Settings[etSSCheckSection].C
+          else
+            Mainform.Label3.Caption := SBarSummaryMsg;
+        2:
+          S := SBarSummaryMsg;
+      end;
+
+  // error or UserText...
+  if not SBarErrorMsg.IsEmpty then
+    begin
+      if not S.IsEmpty then
+        S := S + ' -- ';
+      S := S + SBarErrorMsg;
+    end
+  else if not SBarStationInfo.IsEmpty then
+    begin
+      if not S.IsEmpty then
+        S := S + ' -- ';
+      S := S + SBarStationInfo;
+    end;
+
+  // during debug, use status bar to show CW stream
+  if not SBarDebugMsg.IsEmpty then
+    S := format('  %-45s >> %-40s', [S, SBarDebugMsg]);
+
+  if SBarErrorMsg.IsEmpty then
+    Mainform.sbar.Font.Color := clDefault
+  else
+    Mainform.sbar.Font.Color := SBarErrorColor;
+
+  MainForm.sbar.Caption := S;
+end;
+
+
+procedure DisplayError(const AExchError: string; const AColor: TColor);
+begin
+  if (Log.SBarErrorMsg = AExchError) and
+     (Log.SBarErrorColor = AColor) then Exit;
+
+  Log.SBarErrorMsg := AExchError;
+  Log.SBarErrorColor := AColor;
+  UpdateSbar;
 end;
 
 
@@ -742,7 +832,7 @@ end;
 {
   Save QSO data into the Log.
 
-  Called by either:
+  Called after user presses:
   - 'Enter' key (after sending 'TU' to caller).
   - 'Shift-Enter', 'Cntl-Enter' or 'Alt-Enter' (without sending 'TU' to caller).
 }
@@ -757,19 +847,11 @@ begin
     begin
     Call := StringReplace(Edit1.Text, '?', '', [rfReplaceAll]);
 
-    // Virtual functions used below allow special processing as needed
-    // for some contests (e.g. ARRL Sweepstakes).
-    if not Tst.CheckEnteredCallLength(Call, ExchError) or
-      not Tst.ValidateEnteredExchange(Call, Edit2.Text, Edit3.Text, ExchError) then
+    // Verify callsign (simple length-based check); virtual
+    if not Tst.CheckEnteredCallLength(Call, ExchError) then
       begin
         {Beep;}
-        if not ExchError.IsEmpty then
-          begin
-            sbar.Caption := ExchError;
-            sbar.Align:= alBottom;
-            sbar.Visible:= true;
-            sbar.Font.Color := clRed;
-          end;
+        DisplayError(ExchError, clRed);
         Exit;
       end;
 

@@ -22,7 +22,7 @@ uses
 
 const
   WM_TBDOWN = WM_USER+1;
-  sVersion: String = '1.85p';  { Sets version strings in UI panel. }
+  sVersion: String = '1.85+';  { Sets version strings in UI panel. }
 
 type
 
@@ -333,6 +333,7 @@ type
     procedure Edit4Exit(Sender: TObject);
     procedure SpinEdit1Exit(Sender: TObject);
     procedure Edit3Enter(Sender: TObject);
+    procedure Edit3KeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure spdbtnStopClick(Sender: TObject);
     procedure comboModeSelect(Sender: TObject);
     procedure spdbtnResetRITClick(Sender: TObject);
@@ -459,6 +460,10 @@ end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
+{$ifdef DEBUG}
+  // detect/report memory leaks while in debug mode
+  System.ReportMemoryLeaksOnShutdown := True;
+{$endif}
   Randomize;
 
   Panel2.DoubleBuffered := True;
@@ -570,15 +575,12 @@ begin
     SpinEdit1Exit(SpinEdit1);
 
   if AMsg = msgHisCall then begin
-    // retain current callsign, including ''. if empty, return.
-    Tst.Me.HisCall := Edit1.Text;
-    CallSent := Edit1.Text <> '';
-    if not CallSent then
-      Exit;
+    // retain current callsign, including ''.
+    Tst.SetHisCall(Edit1.Text);   // virtual; sets Tst.Me.HisCall and Log.CallSent
 
     // update "received" Exchange field types. Some contests change field
-    // types based on MyCall or dx station's call (current value of Edit1).
-    RecvExchTypes:= Tst.GetRecvExchTypes(skMyStation, Tst.Me.MyCall, Trim(Edit1.Text));
+    // types based on MyCall and/or DX station's call (Tst.Me.HisCall).
+    RecvExchTypes:= Tst.GetRecvExchTypes(skMyStation, Tst.Me.MyCall, Tst.Me.HisCall);
   end;
   if AMsg = msgNR then
     NrSent := true;
@@ -626,6 +628,28 @@ begin
       assert(false, Format('invalid exchange field 1 type: %s',
         [ToStr(RecvExchTypes.Exch1)]));
   end;
+end;
+
+{
+  Called after each keystroke while editing the Exch2 field (Edit3).
+  Allows special processing to occur for certain contests.
+}
+procedure TMainForm.Edit3KeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  // some contests have additional processing (e.g. ARRL SS)
+  // (exclude function keys so we can use the debugger)
+  var ExchSummary, ExchError: string;
+  if (SimContest in [scArrlSS]) and ((Key < VK_F1) or (Key > VK_F12)) then
+    begin
+      if Tst.OnExchangeEdit(Edit1.Text, Edit2.Text, Edit3.Text,
+        ExchSummary, ExchError) then
+        begin
+          Log.SBarUpdateSummary(ExchSummary);
+          if not Log.SBarErrorMsg.IsEmpty and ExchError.IsEmpty then
+            Log.DisplayError('', clDefault);
+        end;
+    end;
 end;
 
 procedure TMainForm.Edit3Enter(Sender: TObject);
@@ -764,12 +788,26 @@ begin
 
     ';': //<his> <#>
       begin
+        // some contests have additional exchange processing (e.g. ARRL SS)
+        Tst.OnExchangeEditComplete;  // sets Log.CallSent
+
         SendMsg(msgHisCall);
         SendMsg(msgNr);
       end;
 
     '.', '+', '[', ',': //TU & Save
       begin
+        // verify callsign using simple length-based check
+        var ExchError: string;
+        if not Tst.CheckEnteredCallLength(Edit1.Text, ExchError) then
+          begin
+            DisplayError(ExchError, clRed);
+            Exit;
+          end;
+
+        // some contests have additional exchange processing (e.g. ARRL SS)
+        Tst.OnExchangeEditComplete;  // sets Log.CallSent
+
         if not CallSent then
           SendMsg(msgHisCall);
         SendMsg(msgTU);
@@ -799,6 +837,7 @@ begin
   case Key of
     VK_INSERT: //<his> <#>
       begin
+      Tst.OnExchangeEditComplete;
       SendMsg(msgHisCall);
       SendMsg(msgNr);
       Key := 0;
@@ -893,7 +932,7 @@ begin
       if ActiveControl = Edit1 then
         begin
           if SimContest = scFieldDay then
-            UpdateSbar(Edit1.Text);
+            SbarUpdateStationInfo(Edit1.Text);
           if SimContest = scArrlSS then
             ActiveControl := Edit3
           else
@@ -942,12 +981,20 @@ begin
         Exit;
     end;
   MustAdvance := false;
+  ExchError := '';
 
   sbar.Font.Color := clDefault;
 
   // 'Control-Enter', 'Shift-Enter' and 'Alt-Enter' are shortcuts to SaveQSO
   if (GetKeyState(VK_CONTROL) or GetKeyState(VK_SHIFT) or GetKeyState(VK_MENU)) < 0 then
   begin
+    // verify callsign before calling SaveQSO
+    if not Tst.CheckEnteredCallLength(Edit1.Text, ExchError) then
+      begin
+        DisplayError(ExchError, clRed);
+        Exit;
+      end;
+
     Log.SaveQso;
     Exit;
   end;
@@ -957,7 +1004,9 @@ begin
   // remember not to give a hint if exchange entry is affected by this info.
   // for certain contests (e.g. ARRL Field Day), update update status bar
   if SimContest in [scCwt, scFieldDay, scWpx, scCQWW, scArrlDx, scIaruHf] then
-    UpdateSbar(Edit1.Text);
+    SbarUpdateStationInfo(Edit1.Text)
+  else if not BDebugCwDecoder then
+    SbarUpdateStationInfo('');
 
   //no QSO in progress, send CQ
   if Edit1.Text = '' then
@@ -970,6 +1019,12 @@ begin
       MustAdvance := true;
     Exit;
   end;
+
+  // Update CallSent (HisCall has been sent)
+  Tst.OnExchangeEditComplete;
+
+  // clear prior error string
+  DisplayError('', clDefault);
 
   //current state
   C := CallSent;
@@ -989,20 +1044,17 @@ begin
   if not N then
     SendMsg(msgNR);
   if N and (not R or not Q) then
-    SendMsg(msgQm);
+    begin
+      DisplayError(ExchError, clDefault);
+      SendMsg(msgQm);
+    end;
 
   if R and Q and (C or N) then
   begin
     // validate Exchange before sending TU and logging the QSO
     if not Tst.ValidateEnteredExchange(Edit1.Text, Edit2.Text, Edit3.Text, ExchError) then
       begin
-        if not ExchError.IsEmpty then
-          begin
-            sbar.Caption := ExchError;
-            sbar.Align:= alBottom;
-            sbar.Visible:= true;
-            sbar.Font.Color := clRed;
-          end;
+        DisplayError(ExchError, clRed);
         Exit;
       end;
 
@@ -1188,11 +1240,7 @@ begin
     if not Tst.ValidateMyExchange(AExchange, sl, ExchError) then
       begin
         Result := False;
-        sbar.Caption := ExchError;
-
-        sbar.Align:= alBottom;
-        sbar.Visible:= true;
-        sbar.Font.Color := clRed;
+        DisplayError(ExchError, clRed);
 
         // update the Sent Exchange field value
         ExchangeEdit.Text := AExchange;
@@ -1532,22 +1580,25 @@ begin
       end;
     etSSCheckSection:
       begin
-        // retain current field sizes
-        SaveEdit1Width := Edit1.Width;
-        SaveLabel3Left := Label3.Left;
-        SaveEdit3Left := Edit3.Left;
-        SaveEdit3Width := Edit3.Width;
+        if SaveEdit3Left = 0 then
+          begin
+            // retain current field sizes
+            SaveEdit1Width := Edit1.Width;
+            SaveLabel3Left := Label3.Left;
+            SaveEdit3Left := Edit3.Left;
+            SaveEdit3Width := Edit3.Width;
 
-        // hide Exch1 (Edit2)
-        Edit2.Hide;
-        Label2.Hide;
+            // hide Exch1 (Edit2)
+            Edit2.Hide;
+            Label2.Hide;
 
-        // reduce Edit1 width; shift Exch Field 2 to the left and grow
-        var Reduce1: integer := (SaveEdit1Width * 4) div 9;
-        Label3.Left := Label3.Left - (Label3.Left - Label2.Left) - Reduce1;
-        Edit3.Left := Edit2.Left - Reduce1;
-        Edit3.Width := Edit3.Width + (SaveEdit3Left - Edit2.Left + Reduce1 + 15);
-        Edit1.Width := Edit1.Width - Reduce1;
+            // reduce Edit1 width; shift Exch Field 2 to the left and grow
+            var Reduce1: integer := (SaveEdit1Width * 4) div 9;
+            Label3.Left := Label3.Left - (Label3.Left - Label2.Left) - Reduce1;
+            Edit3.Left := Edit2.Left - Reduce1;
+            Edit3.Width := Edit3.Width + (SaveEdit3Left - Edit2.Left + Reduce1 + 15);
+            Edit1.Width := Edit1.Width - Reduce1;
+          end;
 
         Ini.UserExchange2[SimContest] := Avalue; // <check> <sect> (e.g. 72 OR)
         Tst.Me.Exch2 := Avalue;
@@ -1707,6 +1758,12 @@ begin
   Edit2.Text := '';
   Edit3.Text := '';
   ActiveControl := Edit1;
+
+  if SimContest = scArrlSS then
+    Log.SBarUpdateSummary('');
+
+  if Assigned(Tst) then
+    Tst.OnWipeBoxes;
 
   CallSent := false;
   NrSent := false;
@@ -2328,7 +2385,8 @@ begin
         (ActiveControl = Edit3) and (Edit3.Text = '') and
         (Random < (ShowCheckSection/100)) then
           begin
-            var S: string := (Tst as TSweepstakes).GetCheckSection(Edit1.Text, 0.25);
+            // inject a Section error 10% of the time
+            var S: string := (Tst as TSweepstakes).GetCheckSection(Edit1.Text, 0.10);
             if not S.IsEmpty then
               S := S + ' ';
             Edit3.Text := S;
@@ -2696,7 +2754,7 @@ procedure TMainForm.ListView2SelectItem(Sender: TObject; Item: TListItem;
   Selected: Boolean);
 begin
     if (Selected and mnuShowCallsignInfo.Checked) then
-        UpdateSbar(Item.SubItems[0]);
+        SbarUpdateStationInfo(Item.SubItems[0]);
 end;
 
 procedure TMainForm.Activity1Click(Sender: TObject);

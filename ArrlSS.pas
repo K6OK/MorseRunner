@@ -50,12 +50,19 @@ public
 
   function FindCallRec(out ssrec: TSweepstakesCallRec; const ACall: string): Boolean;
   procedure SendMsg(const AStn: TStation; const AMsg: TStationMessage); override;
+  procedure OnWipeBoxes; override;
+  function OnExchangeEdit(const ACall, AExch1, AExch2: string;
+    out AExchSummary: string; out AExchError: string) : Boolean; override;
+  procedure OnExchangeEditComplete; override;
+  procedure SetHisCall(const ACall: string); override;
+  function CheckEnteredCallLength(const ACall: string;
+    out AExchError: String) : boolean; override;
   function ValidateEnteredExchange(const ACall, AExch1, AExch2: string;
     out AExchError: String) : boolean; override;
   procedure SaveEnteredExchToQso(var Qso: TQso; const AExch1, AExch2: string); override;
   function GetStationInfo(const ACallsign: string) : string; override;
   function ExtractMultiplier(Qso: PQso) : string; override;
-  function GetCheckSection(const ACallsign: string; AThreshold: extended = 0): String;
+  function GetCheckSection(const ACallsign: string; AThreshold: Single = 0): String;
   function IsNum(Num: String): Boolean;
 end;
 
@@ -170,7 +177,7 @@ function TSweepstakes.ValidateMyExchange(const AExchange: string;
 const
   // Syntax: [123|#][ ]<Precedence> <Check> <Section>
   Regexpr: string = ' *(?P<exch1>(?P<nr>[0-9]+|#)? *(?P<prec>[QABUMS])) +'
-                  + '(?P<chk>[0-9]{2}) +(?P<sect>[A-Z]+) *';
+                  + '(?P<chk>[0-9]{2}) +(?P<sect>[A-Z]{2,3}) *';
 var
   reg: TPerlRegEx;
   Exch1, Exch2: string;
@@ -255,6 +262,97 @@ end;
 
 
 {
+  Called after a QSO has completed or when user wipes (clears) all exchange
+  entry boxes on the GUI.
+}
+procedure TSweepstakes.OnWipeBoxes;
+begin
+  inherited OnWipeBoxes;
+  ExchValidator.OnWipeBoxes;
+end;
+
+
+{
+  User has finished typing in the exchange fields and has pressed Enter or
+  another command keystroke.
+  Set Log.CallSent to False if the callsign has been modified or corrected.
+}
+procedure TSweepstakes.OnExchangeEditComplete;
+begin
+  if ExchValidator.Call.IsEmpty then
+    inherited OnExchangeEditComplete
+  else if ExchValidator.Call <> Self.Me.HisCall then
+    Log.CallSent := False;
+end;
+
+
+{
+  This overriden SetHisCall will:
+  - if the exchange field contains a callsign correction, apply it here;
+    otherwise call the base class.
+  - sets TContest.Me.HisCall.
+  - sets Log.CallSent to False if the callsign should be sent.
+}
+procedure TSweepstakes.SetHisCall(const ACall: string);
+begin
+  var CorrectedCallsign: string := ExchValidator.Call;
+  if CorrectedCallsign <> '' then
+    begin
+      // resend Callsign if it has changed since last time it was sent
+      if (CorrectedCallsign <> Self.Me.HisCall) and
+        not Self.Me.UpdateCallInMessage(CorrectedCallsign) then
+          begin
+            Self.Me.HisCall := CorrectedCallsign;
+            Log.CallSent := True;
+          end
+      else if (CorrectedCallsign = Self.Me.HisCall) and not CallSent then
+        Log.CallSent := True;
+    end
+  else
+    inherited SetHisCall(ACall);
+end;
+
+
+{
+  Called after each keystoke for the Exch2 entry field.
+  Parse user-entered Exchange and returns the Exchange summary.
+  Overriden here to handle complex ARRL Sweepstakes exchange.
+  Returns whether Exchange summary is non-empty.
+}
+function TSweepstakes.OnExchangeEdit(const ACall, AExch1, AExch2: string;
+  out AExchSummary: string; out AExchError: string) : Boolean;
+begin
+  if Ini.ShowExchangeSummary <> 0 then
+    begin
+      // incrementally parse the exchange with each keystroke
+      ExchValidator.ValidateEnteredExchange(ACall, AExch1, AExch2, AExchError);
+
+      // return summary (displayed above Exch2's Caption)
+      AExchSummary := ExchValidator.ExchSummary;
+      Result := not AExchSummary.IsEmpty;
+    end
+  else
+    Result := False;
+end;
+
+
+{
+  Verify callsign using length-based check.
+  For ARRL SS, if Call has been parsed, it is assumed valid; otherwise
+  call the base class implementation.
+}
+function TSweepstakes.CheckEnteredCallLength(const ACall: string;
+  out AExchError: String) : boolean;
+begin
+  AExchError := '';
+  if ExchValidator.Call.IsEmpty then
+    Result := inherited CheckEnteredCallLength(ACall, AExchError)
+  else
+    Result := True;
+end;
+
+
+{
   Validate user-entered Exchange before sending TU and logging the QSO.
   Overriden here to handle complex ARRL Sweepstakes exchange.
 }
@@ -275,6 +373,9 @@ begin
   Qso.Prec := ExchValidator.Precedence;
   Qso.Check := StrToIntDef(ExchValidator.Check, 0);
   Qso.Sect := ExchValidator.Section;
+
+  if Qso.Prec.IsEmpty then Qso.Prec := '?';
+  if Qso.Sect.IsEmpty then Qso.Sect := '?';
 
   if not ExchValidator.Call.IsEmpty then
     Qso.Call := ExchValidator.Call;
@@ -311,10 +412,23 @@ end;
 }
 procedure TSweepstakes.GetExchange(id : integer; out station : TDxStation);
 const
-  PrecedenceTbl: array[0..5] of string = ('Q', 'A', 'B', 'U', 'M', 'S');
+  PrecedenceTbl: array[0..5] of string = ('A', 'B', 'U', 'Q', 'M', 'S');
 begin
   station.NR := GetRandomSerialNR;  // serial number
-  station.Prec := PrecedenceTbl[Random(6)];
+
+  // Mark, KD0EE, recommends 50% calls are A, 20% B, 20% U, 10% for the rest.
+  // Jim, K6OK, reported     37% calls are A, 19% B, 36% U, 10% for the rest.
+  // Using the average ...             43% A, 19% B, 28% U, 10% for Q, M and S.
+  var R: Single := Random;
+  if R < 0.43 then
+    station.Prec := PrecedenceTbl[0]
+  else if R < 0.62 then
+    station.Prec := PrecedenceTbl[1]
+  else if R < 0.90 then
+    station.Prec := PrecedenceTbl[2]
+  else
+    station.Prec := PrecedenceTbl[3+Random(3)];
+
   station.Chk := SweepstakesCallList.Items[id].Check;
   station.Sect := SweepstakesCallList.Items[id].Section;
   station.UserText := SweepstakesCallList.Items[id].UserText;
@@ -363,18 +477,28 @@ end;
   so the user has to correct the string being copied.
 }
 function TSweepstakes.GetCheckSection(const ACallsign: string;
-  AThreshold: extended): String;
+  AThreshold: Single): String;
 var
   ssrec: TSweepstakesCallRec;
+  check: integer;
   section: string;
 begin
   if FindCallRec(ssrec, ACallsign) then
     begin
-      if (Random < AThreshold) then
-        section := GetAlternateSection(ssrec.Section)
-      else
-        section := ssrec.Section;
-      result := format('%.02d %s', [ssrec.Check, section]);
+      check := ssrec.Check;
+      if Random < AThreshold then   // 10%
+        begin
+          if Random(2) = 0 then
+            check := (check+1) mod 100
+          else
+            check := ((check-1) + 100) mod 100;
+        end;
+
+      section := ssrec.Section;
+      if Random < AThreshold then   // 10%
+        section := GetAlternateSection(section);
+
+      result := format('%.02d %s', [check, section]);
     end
   else
     result:= '';

@@ -262,6 +262,7 @@ var
   NoStopActivity: integer=0;
   GetWpmUsesGaussian: boolean = false;
   ShowCheckSection: integer=50;
+  ShowExchangeSummary: integer = 1; // 0=Off, 1=Above Field, 2=Status Bar
 
   Duration: integer = 30;
   RunMode: TRunMode = rmPileUp;      // was rmStop  (K6OK)
@@ -442,6 +443,7 @@ begin
       RitStepIncr := ReadInteger(SEC_SET, 'RitStepIncr', RitStepIncr);
       RitStepIncr := Max(-500, Min(500, RitStepIncr));
       ShowCheckSection := ReadInteger(SEC_SET, 'ShowCheckSection', ShowCheckSection);
+      ShowExchangeSummary := ReadInteger(SEC_SET, 'ShowExchangeSummary', ShowExchangeSummary);
 
       // [Debug]
       DebugExchSettings := ReadBool(SEC_DBG, 'DebugExchSettings', DebugExchSettings);
@@ -525,6 +527,7 @@ begin
       WriteInteger(SEC_SET, 'WpmStepRate', WpmStepRate);
       WriteInteger(SEC_SET, 'RitStepIncr', RitStepIncr);
       WriteInteger(SEC_SET, 'ShowCheckSection', ShowCheckSection);
+      WriteInteger(SEC_SET, 'ShowExchangeSummary', ShowExchangeSummary);
 
     finally
       Free;
