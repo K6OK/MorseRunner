@@ -17,58 +17,12 @@ uses
   VolmSldr, VolumCtl, StdCtrls, Station, Menus, ExtCtrls,
   ComCtrls, Spin, SndTypes,
   WavFile,
+  ExchFields,   // for TFieldDefinition
   System.ImageList, Vcl.ToolWin, Vcl.ImgList;
 
 const
   WM_TBDOWN = WM_USER+1;
   sVersion: String = '1.90p';  { Sets version strings in UI panel. }
-
-type
-
-  {
-    Defines the characteristics and behaviors of an exchange field.
-    Used to declare various exchange field behaviors. Field Definitions
-    are indexed by a contest definition (e.g. ARRL FD uses etFdClass and
-    etStateProv). As new contests are added, new field definition
-    may be required. When adding a new exchange field definition,
-    search for existing code usages to find areas that will require changes.
-  }
-  TFieldDefinition = record
-    C: PChar;     // Caption
-    R: PChar;     // Regular Expression
-    L: smallint;  // MaxLength
-    T: smallint;  // Type
-  end;
-
-  PFieldDefinition = ^TFieldDefinition;
-
-const
-  // Adding a contest: define contest-specific field types
-  // Exchange Field 1 settings/rules
-  Exchange1Settings: array[TExchange1Type] of TFieldDefinition = (
-    (C: 'RST';   R: '[1-5E][1-9N][1-9N]'; L: 3;  T:Ord(etRST)),
-    (C: 'Name';  R: '[A-Z][A-Z]*';      L: 10; T:Ord(etOpName)),
-    (C: 'Class'; R: '[1-9][0-9]*[A-F]'; L: 3;  T:Ord(etFdClass))
-  );
-
-  // Exchange Field 2 settings/rules
-  Exchange2Settings: array[TExchange2Type] of TFieldDefinition = (
-    (C: 'Nr.';        R: '([0-9OTN]+)|(#)';                L: 4;  T:Ord(etSerialNr)),
-    (C: 'Exch';       R: '[0-9A-Z]*';                      L: 12; T:Ord(etGenericField)),
-    (C: 'Section';    R: '([A-Z][A-Z])|([A-Z][A-Z][A-Z])'; L: 3;  T:Ord(etArrlSection)),
-    (C: 'State/Prov'; R: '[ABCDFGHIKLMNOPQRSTUVWY][ABCDEFHIJKLMNORSTUVXYZ]';
-                                                           L: 6;  T:Ord(etStateProv)),
-    (C: 'CQ-Zone';    R: '[0-9]*';                         L: 2;  T:Ord(etCqZone)),
-    (C: 'Zone';       R: '[0-9]*';                         L: 4;  T:Ord(etItuZone)),
-    (C: 'Age';        R: '[0-9][0-9]';                     L: 2;  T:Ord(etAge)),
-    (C: 'Power';      R: '([0-9]*)|(K)|(KW)|([0-9A]*[OTN]*)'; L: 4; T:Ord(etPower)),
-    (C: 'Number';     R: '([0-9AOTN]*)([LMHP])';           L: 4; T:Ord(etJaPref)),
-    (C: 'Number';     R: '([0-9AOTN]*)([LMHP])';           L: 7; T:Ord(etJaCity))
-    // NAQP Contest: NA Stations send name and (state/prov/dxcc);
-    //           Non-NA stations send name only
-   ,(C: 'State';      R: '([0-9A-Z/]*)';                   L: 6; T:Ord(etNaQpExch2))
-   ,(C: 'State';      R: '()|([0-9A-Z/]*)';                L: 6; T:Ord(etNaQpNonNaExch2))
-  );
 
 type
 
@@ -379,6 +333,7 @@ type
     procedure Edit4Exit(Sender: TObject);
     procedure SpinEdit1Exit(Sender: TObject);
     procedure Edit3Enter(Sender: TObject);
+    procedure Edit3KeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure spdbtnStopClick(Sender: TObject);
     procedure comboModeSelect(Sender: TObject);
     procedure spdbtnResetRITClick(Sender: TObject);
@@ -407,8 +362,6 @@ type
     procedure ConfigureExchangeFields;
     procedure SetMyExch1(const AExchType: TExchange1Type; const Avalue: string);
     procedure SetMyExch2(const AExchType: TExchange2Type; const Avalue: string);
-    function ValidateExchField(const FieldDef: PFieldDefinition;
-      const Avalue: string) : Boolean;
     procedure ProcessSpace;
     procedure SendMsg(AMsg: TStationMessage);
     procedure ProcessEnter;
@@ -465,6 +418,10 @@ const
 
 var
   MainForm: TMainForm;
+  SaveEdit1Width: integer = 0;
+  SaveLabel3Left: integer = 0;
+  SaveEdit3Left: integer = 0;
+  SaveEdit3Width: integer = 0;
 
   { debug switches - set via .INI file or compile-time switches (above) }
   BDebugExchSettings: boolean;    // display parsed Exchange field settings
@@ -478,8 +435,8 @@ var
 implementation
 
 uses
-  ARRL, ARRLFD, NAQP, CWOPS, CQWW, CQWPX, ARRLDX, CWSST, ALLJA, ACAG,
-  IARUHF,
+  DXCC, ARRLFD, NAQP, CWOPS, CQWW, CQWPX, ARRLDX, CWSST, ALLJA, ACAG,
+  IARUHF, ARRLSS,
   MorseKey, FarnsKeyer, CallLst,
   SysUtils, ShellApi, Crc32, Idhttp, Math, IniFiles,
   Dialogs, System.UITypes, TypInfo, ScoreDlg, Log, PerlRegEx, StrUtils;
@@ -506,6 +463,10 @@ end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
+{$ifdef DEBUG}
+  // detect/report memory leaks while in debug mode
+  System.ReportMemoryLeaksOnShutdown := True;
+{$endif}
   Randomize;
 
   Panel2.DoubleBuffered := True;
@@ -588,6 +549,7 @@ begin
   scAllJa:      Result := TALLJA.Create;
   scAcag:       Result := TACAG.Create;
   scIaruHf:     Result := TIaruHf.Create;
+  scArrlSS:     Result := TSweepstakes.Create;
   else
     assert(false);
   end;
@@ -622,15 +584,12 @@ begin
     SpinEdit1Exit(SpinEdit1);
 
   if AMsg = msgHisCall then begin
-    // retain current callsign, including ''. if empty, return.
-    Tst.Me.HisCall := Edit1.Text;
-    CallSent := Edit1.Text <> '';
-    if not CallSent then
-      Exit;
+    // retain current callsign, including ''.
+    Tst.SetHisCall(Edit1.Text);   // virtual; sets Tst.Me.HisCall and Log.CallSent
 
     // update "received" Exchange field types. Some contests change field
-    // types based on MyCall or dx station's call (current value of Edit1).
-    RecvExchTypes:= Tst.GetRecvExchTypes(skMyStation, Tst.Me.MyCall, Trim(Edit1.Text));
+    // types based on MyCall and/or DX station's call (Tst.Me.HisCall).
+    RecvExchTypes:= Tst.GetRecvExchTypes(skMyStation, Tst.Me.MyCall, Tst.Me.HisCall);
   end;
   if AMsg = msgNR then
     NrSent := true;
@@ -680,6 +639,28 @@ begin
   end;
 end;
 
+{
+  Called after each keystroke while editing the Exch2 field (Edit3).
+  Allows special processing to occur for certain contests.
+}
+procedure TMainForm.Edit3KeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  // some contests have additional processing (e.g. ARRL SS)
+  // (exclude function keys so we can use the debugger)
+  var ExchSummary, ExchError: string;
+  if (SimContest in [scArrlSS]) and ((Key < VK_F1) or (Key > VK_F12)) then
+    begin
+      if Tst.OnExchangeEdit(Edit1.Text, Edit2.Text, Edit3.Text,
+        ExchSummary, ExchError) then
+        begin
+          Log.SBarUpdateSummary(ExchSummary);
+          if not Log.SBarErrorMsg.IsEmpty and ExchError.IsEmpty then
+            Log.DisplayError('', clDefault);
+        end;
+    end;
+end;
+
 procedure TMainForm.Edit3Enter(Sender: TObject);
 begin
   Edit3.SelStart := 0;
@@ -697,7 +678,7 @@ end;
 procedure TMainForm.Edit3KeyPress(Sender: TObject; var Key: Char);
 begin
   case RecvExchTypes.Exch2 of
-    etSerialNr, etCqZone, etItuZone, etAge:
+    etSerialNr, etItuZone, etAge:
       begin
         if RunMode <> rmHst then
           case Key of
@@ -706,6 +687,19 @@ begin
             't', 'T': Key := '0';
           end;
         // valid Zone or NR field characters...
+        if not CharInSet(Key, ['0'..'9', #8]) then
+          Key := #0;
+      end;
+    etCqZone:
+      begin
+        if RunMode <> rmHst then
+          case Key of
+            'a', 'A': Key := '1';
+            'n', 'N': Key := '9';
+            'o', 'O': Key := '0';
+            't', 'T': Key := '0';
+          end;
+        // valid CQ-Zone field characters...
         if not CharInSet(Key, ['0'..'9', #8]) then
           Key := #0;
       end;
@@ -753,6 +747,12 @@ begin
         if not CharInSet(Key, ['0'..'9', 'L', 'M', 'H', 'P', 'l', 'm', 'h', 'p', #8]) then
           Key := #0;
       end;
+    etSSCheckSection:
+      begin
+        // valid NR/Prec/Call/Check/Section characters
+        if not CharInSet(Key, ['0'..'9', 'A'..'Z', 'a'..'z', '/', #32, #8]) then
+          Key := #0;
+      end
     else
       assert(false, Format('invalid exchange field 2 type: %s',
         [ToStr(RecvExchTypes.Exch2)]));
@@ -797,12 +797,26 @@ begin
 
     ';': //<his> <#>
       begin
+        // some contests have additional exchange processing (e.g. ARRL SS)
+        Tst.OnExchangeEditComplete;  // sets Log.CallSent
+
         SendMsg(msgHisCall);
         SendMsg(msgNr);
       end;
 
     '.', '+', '[', ',': //TU & Save
       begin
+        // verify callsign using simple length-based check
+        var ExchError: string;
+        if not Tst.CheckEnteredCallLength(Edit1.Text, ExchError) then
+          begin
+            DisplayError(ExchError, clRed);
+            Exit;
+          end;
+
+        // some contests have additional exchange processing (e.g. ARRL SS)
+        Tst.OnExchangeEditComplete;  // sets Log.CallSent
+
         if not CallSent then
           SendMsg(msgHisCall);
         SendMsg(msgTU);
@@ -810,7 +824,8 @@ begin
       end;
 
     ' ': // advance to next exchange field
-      if ActiveControl <> ExchangeEdit then
+      if (ActiveControl <> ExchangeEdit) and
+         not ((ActiveControl = Edit3) and (SimContest = scArrlSS)) then
         ProcessSpace
       else
         Exit;
@@ -831,6 +846,7 @@ begin
   case Key of
     VK_INSERT: //<his> <#>
       begin
+      Tst.OnExchangeEditComplete;
       SendMsg(msgHisCall);
       SendMsg(msgNr);
       Key := 0;
@@ -932,8 +948,11 @@ begin
       if ActiveControl = Edit1 then
         begin
           if SimContest = scFieldDay then
-            UpdateSbar(Edit1.Text);
-          ActiveControl := Edit2;
+            SbarUpdateStationInfo(Edit1.Text);
+          if SimContest = scArrlSS then
+            ActiveControl := Edit3
+          else
+            ActiveControl := Edit2;
         end
       else if ActiveControl = Edit2 then
         ActiveControl := Edit3
@@ -956,6 +975,7 @@ end;
 procedure TMainForm.ProcessEnter;
 var
   C, N, R, Q: boolean;
+  ExchError: string;
 begin
   if ActiveControl = ExchangeEdit then
     begin
@@ -977,9 +997,20 @@ begin
         Exit;
     end;
   MustAdvance := false;
+  ExchError := '';
 
+  sbar.Font.Color := clDefault;
+
+  // 'Control-Enter', 'Shift-Enter' and 'Alt-Enter' are shortcuts to SaveQSO
   if (GetKeyState(VK_CONTROL) or GetKeyState(VK_SHIFT) or GetKeyState(VK_MENU)) < 0 then
   begin
+    // verify callsign before calling SaveQSO
+    if not Tst.CheckEnteredCallLength(Edit1.Text, ExchError) then
+      begin
+        DisplayError(ExchError, clRed);
+        Exit;
+      end;
+
     Log.SaveQso;
     Exit;
   end;
@@ -989,7 +1020,9 @@ begin
   // remember not to give a hint if exchange entry is affected by this info.
   // for certain contests (e.g. ARRL Field Day), update update status bar
   if SimContest in [scCwt, scFieldDay, scWpx, scCQWW, scArrlDx, scIaruHf] then
-    UpdateSbar(Edit1.Text);
+    SbarUpdateStationInfo(Edit1.Text)
+  else if not BDebugCwDecoder then
+    SbarUpdateStationInfo('');
 
   //no QSO in progress, send CQ
   if Edit1.Text = '' then
@@ -1003,12 +1036,23 @@ begin
     Exit;
   end;
 
+  // Update CallSent (HisCall has been sent)
+  Tst.OnExchangeEditComplete;
+
+  // clear prior error string
+  DisplayError('', clDefault);
+
   //current state
   C := CallSent;
   N := NrSent;    // 'Nr' represents the exchange (<exch1> <exch2>).
-  Q := Edit2.Text <> '';
-  R := (Edit3.Text <> '') or ((SimContest = scNaQp) and
-                              (RecvExchTypes.Exch2 = etNaQpNonNaExch2));
+  Q := (Edit2.Text <> '') or (SimContest in [scArrlSS]);
+  case SimContest of
+    scArrlSS:
+      R := Tst.ValidateEnteredExchange(Edit1.Text, Edit2.Text, Edit3.Text, ExchError);
+    else
+      R := (Edit3.Text <> '') or ((SimContest = scNaQp) and
+                                  (RecvExchTypes.Exch2 = etNaQpNonNaExch2));
+  end;
 
   //send his call if did not send before, or if call changed
   if (not C) or ((not N) and (not R)) then
@@ -1016,10 +1060,20 @@ begin
   if not N then
     SendMsg(msgNR);
   if N and (not R or not Q) then
-    SendMsg(msgQm);
+    begin
+      DisplayError(ExchError, clDefault);
+      SendMsg(msgQm);
+    end;
 
   if R and Q and (C or N) then
   begin
+    // validate Exchange before sending TU and logging the QSO
+    if not Tst.ValidateEnteredExchange(Edit1.Text, Edit2.Text, Edit3.Text, ExchError) then
+      begin
+        DisplayError(ExchError, clRed);
+        Exit;
+      end;
+
     SendMsg(msgTU);
     Log.SaveQso;
   end
@@ -1106,7 +1160,7 @@ begin
   // Adding a contest: add each contest to this set. TODO - implement alternative
   // validate selected contest
   if not (AContestNum in [scWpx, scCwt, scFieldDay, scNaQp, scHst,
-    scCQWW, scArrlDx, scSst, scAllJa, scAcag, scIaruHf]) then
+    scCQWW, scArrlDx, scSst, scAllJa, scAcag, scIaruHf, scArrlSS]) then
   begin
     ShowMessage('The selected contest is not yet supported.');
     SimContestCombo.ItemIndex :=
@@ -1180,40 +1234,29 @@ end;}
 
   My "sent" exchange types (Tst.Me.SentExchTypes) have been previously set by
   SetMyCall().
+
+  Beginning with ARRL Sweepstakes contest, the exchange will have more than
+  two values, namely '# A 72 OR'. For the case of ARRL Sweepstakes, we will
+  break this into two pieces: Exch1='# A', Exch2='72 OR'.
 }
 function TMainForm.SetMyExchange(const AExchange: string) : Boolean;
 var
   sl: TStringList;
+  ExchError: string;
   SentExchTypes : TExchTypes;
-  Field1Def: PFieldDefinition;
-  Field2Def: PFieldDefinition;
 begin
   sl:= TStringList.Create;
   try
     assert(Tst.Me.SentExchTypes = Tst.GetSentExchTypes(skMyStation, Ini.Call),
       'set by TMainForm.SetMyCall');
     SentExchTypes := Tst.Me.SentExchTypes;
-    Field1Def := @Exchange1Settings[SentExchTypes.Exch1];
-    Field2Def := @Exchange2Settings[SentExchTypes.Exch2];
 
-    // parse into two strings [Exch1, Exch2]
-    ExtractStrings([' '], [], PChar(AExchange), sl);
-    if sl.Count = 0 then
-      sl.AddStrings(['', '']);
-    if sl.Count = 1 then
-      sl.AddStrings(['']);
-
-    // validate sent exchange strings
-    if not ValidateExchField(Field1Def, sl[0]) or
-       not ValidateExchField(Field2Def, sl[1]) then
+    // ValidateMyExchange will parse user-entered exchange and
+    // return Exch1 and Exch2 tokens.
+    if not Tst.ValidateMyExchange(AExchange, sl, ExchError) then
       begin
         Result := False;
-        sbar.Caption := Format('Invalid exchange: ''%s'' - expecting %s.',
-          [AExchange, ActiveContest.Msg]);
-
-        sbar.Align:= alBottom;
-        sbar.Visible:= true;
-        sbar.Font.Color := clRed;
+        DisplayError(ExchError, clRed);
 
         // update the Sent Exchange field value
         ExchangeEdit.Text := AExchange;
@@ -1226,6 +1269,20 @@ begin
         sbar.Visible := mnuShowCallsignInfo.Checked;
         sbar.Font.Color := clDefault;
         sbar.Caption := '';
+      end;
+
+    // restore Edit3 if not ARRL Sweepstakes
+    if (SimContest <> scArrlSS) and (SaveEdit3Left <> 0) then
+      begin
+        Edit1.Width := SaveEdit1Width;
+        Label3.Left := SaveLabel3Left;
+        Edit3.Left := SaveEdit3Left;
+        Edit3.Width := SaveEdit3Width;
+        Label2.Show;
+        Edit2.Show;
+        SaveLabel3Left := 0;
+        SaveEdit3Left := 0;
+        SaveEdit3Width := 0;
       end;
 
     // set contest-specific sent exchange values
@@ -1371,6 +1428,10 @@ end;
 
 procedure TMainForm.SetMyExch1(const AExchType: TExchange1Type;
   const Avalue: string);
+const
+  DIGITS = ['0'..'9'];
+var
+  L: integer;
 begin
   // Adding a contest: setup contest-specific exchange field 1
   case AExchType of
@@ -1398,6 +1459,63 @@ begin
         Ini.ArrlClass := Avalue;
         Ini.UserExchange1[SimContest] := Avalue;
         Tst.Me.Exch1 := Avalue;
+        if BDebugExchSettings then Edit2.Text := Avalue; // testing only
+      end;
+    etSSNrPrecedence:
+      begin
+        // Active during ARRL Sweepstakes contest.
+        // '#A' | '# A' | '123A' | '123 A' | 'A'
+        //    --> Exch1 = 'A' | ' A'       // optional leading space
+        // We want to send what is specified. If they say, '#A', then so space.
+        // We can can store leading space in Tst.Me.Exch1 = ' A', so strip
+        // the leading '#' or numeric ('123').
+        // - pull the leading numeric or '#' and store in NumberStr
+        // - convert '<nr><prec>' to '<nr>''<prec>'
+        // - convert '<nr> <prec>' to '<nr>' ' <prec>'
+        // - insert leading space if count=2
+        Ini.UserExchange1[SimContest] := Avalue;
+
+        if Avalue.IsEmpty then
+          begin
+            Tst.Me.NR := 1;
+            Tst.Me.Exch1 := '';
+          end
+        else if Avalue[1] = '#' then
+          begin
+            // optional leading '#' ('#A' | '# A')
+            if SerialNR in [snMidContest, snEndContest] then
+              Tst.Me.NR := 1 + (Tst.GetRandomSerialNR div 10) * 10
+            else
+              Tst.Me.NR := 1;
+            L := 2;
+            if Avalue[L] = ' ' then
+              while Avalue[L+1] = ' ' do
+                Inc(L);
+            Tst.Me.Exch1 := Avalue.Substring(L-1);
+          end
+        else if CharInSet(Avalue[1], DIGITS) then
+          begin
+            // optional leading serial number ('123A' | '123 A')
+            L := 1;
+            repeat
+              Inc(L)
+            until not CharInSet(Avalue[L], DIGITS);
+            Tst.Me.NR := AValue.Substring(0,L-1).ToInteger;
+            if Avalue[L] = ' ' then
+              while Avalue[L+1] = ' ' do
+                Inc(L);
+            Tst.Me.Exch1 := Avalue.Substring(L-1);
+            if BDebugExchSettings then Edit2.Text := Avalue; // testing only
+          end
+        else
+          begin
+            // no leading serial number. use assigned serial number behavior.
+            if SerialNR in [snMidContest, snEndContest] then
+              Tst.Me.NR := 1 + (Tst.GetRandomSerialNR div 10) * 10
+            else
+              Tst.Me.NR := 1;
+            Tst.Me.Exch1 := ' ' + Avalue;
+          end;
         if BDebugExchSettings then Edit2.Text := Avalue; // testing only
       end;
     else
@@ -1453,8 +1571,8 @@ begin
     etCqZone:
       begin
         Ini.UserExchange2[SimContest] := Avalue;
-        Tst.Me.Nr := StrToInt(Avalue);
-        if BDebugExchSettings then Edit3.Text := IntToStr(Tst.Me.Nr);  // testing only
+        Tst.Me.Exch2 := Avalue;
+        if BDebugExchSettings then Edit3.Text := Avalue;  // testing only
       end;
     etItuZone:
       begin
@@ -1476,37 +1594,42 @@ begin
         Tst.Me.Exch2 := Avalue;
         if BDebugExchSettings then Edit3.Text := Avalue; // testing only
       end;
+    etSSCheckSection:
+      begin
+        if SaveEdit3Left = 0 then
+          begin
+            // retain current field sizes
+            SaveEdit1Width := Edit1.Width;
+            SaveLabel3Left := Label3.Left;
+            SaveEdit3Left := Edit3.Left;
+            SaveEdit3Width := Edit3.Width;
+
+            // hide Exch1 (Edit2)
+            Edit2.Hide;
+            Label2.Hide;
+
+            // reduce Edit1 width; shift Exch Field 2 to the left and grow
+            var Reduce1: integer := (SaveEdit1Width * 4) div 9;
+            Label3.Left := Label3.Left - (Label3.Left - Label2.Left) - Reduce1;
+            Edit3.Left := Edit2.Left - Reduce1;
+            Edit3.Width := Edit3.Width + (SaveEdit3Left - Edit2.Left + Reduce1 + 15);
+            Edit1.Width := Edit1.Width - Reduce1;
+          end;
+
+        Ini.UserExchange2[SimContest] := Avalue; // <check> <sect> (e.g. 72 OR)
+        Tst.Me.Exch2 := Avalue;
+        if BDebugExchSettings then
+          begin
+            Edit3.Text := Edit2.Text + ' ' + Avalue;  // testing only
+            Edit2.Text := '';
+          end;
+      end;
     else
       assert(false, Format('Unsupported exchange 2 type: %s.', [ToStr(AExchType)]));
   end;
   Tst.Me.SentExchTypes.Exch2 := AExchType;
 end;
 
-
-function TMainForm.ValidateExchField(const FieldDef: PFieldDefinition;
-  const Avalue: string) : Boolean;
-var
-  reg: TPerlRegEx;
-  s: string;
-begin
-  if SimContest = scNaQp then begin
-    // special case - I can't figure out how to match an empty string,
-    // so manually check for an optional string.
-    s := FieldDef.R;
-    Result := s.StartsWith('()|(') and Avalue.IsEmpty;
-    if Result then Exit;
-  end;
-
-  reg := TPerlRegEx.Create();
-  try
-    reg.Subject := UTF8Encode(Avalue);
-    s:= '^(' + FieldDef.R + ')$';
-    reg.RegEx:= UTF8Encode(s);
-    Result:= Reg.Match;
-  finally
-    reg.Free;
-  end;
-end;
 
 {
   Set pitch based on menu item number.
@@ -1693,6 +1816,12 @@ begin
   Edit2.Text := '';
   Edit3.Text := '';
   ActiveControl := Edit1;
+
+  if SimContest = scArrlSS then
+    Log.SBarUpdateSummary('');
+
+  if Assigned(Tst) then
+    Tst.OnWipeBoxes;
 
   CallSent := false;
   NrSent := false;
@@ -2318,10 +2447,23 @@ begin
   else
     begin
       { otherwise advance to next field, skipping RST }
-      if Edit2IsRST then
+      if Edit2IsRST or not Edit2.Showing then
         ActiveControl := Edit3
       else
         ActiveControl := Edit2;
+
+      if (SimContest = scArrlSS) and
+        (Ini.ShowCheckSection > 0) and
+        (ActiveControl = Edit3) and (Edit3.Text = '') and
+        (Random < (ShowCheckSection/100)) then
+          begin
+            // inject a Section error 10% of the time
+            var S: string := (Tst as TSweepstakes).GetCheckSection(Edit1.Text, 0.10);
+            if not S.IsEmpty then
+              S := S + ' ';
+            Edit3.Text := S;
+            Edit3.SelStart := S.Length;
+          end;
     end;
 
   MustAdvance := false;
@@ -2660,22 +2802,17 @@ begin
 
   if Log.ShowCorrections then
   begin
-    if Qso.Err <> '   ' then
-    begin
-      case SubItem of
-      1: View.Canvas.Font.Color := Qso.CallColumnColor;
-      2: View.Canvas.Font.Color := Qso.Exch1ColumnColor;
-      3: View.Canvas.Font.Color := Qso.Exch2ColumnColor;
-      5: View.Canvas.Font.Color := Qso.CorrectionsColumnColor;
-      else
-        View.Canvas.Font.Color := clBlack;
-      end;
-    end
+    // column errors are stored as individual bits in Qso.ColumnErrorFlags
+    const ColumnFlag: integer = (1 shl SubItem);
+    if (Qso.Err <> '   ') and ((Qso.ColumnErrorFlags and ColumnFlag) <> 0) then
+      View.Canvas.Font.Color := clRed
     else
       View.Canvas.Font.Color := clBlack;
   end
+  else if SubItem = Log.CorrectionColumnInx then
+    View.Canvas.Font.Color := clRed
   else
-    View.Canvas.Font.Color := IfThen(SubItem = 5, clRed, clBlack);
+    View.Canvas.Font.Color := clBlack;
 
   // strike out HST Score if a QSO error exists
   if SimContest = scHst then
@@ -2689,7 +2826,7 @@ procedure TMainForm.ListView2SelectItem(Sender: TObject; Item: TListItem;
   Selected: Boolean);
 begin
     if (Selected and mnuShowCallsignInfo.Checked) then
-        UpdateSbar(Item.SubItems[0]);
+        SbarUpdateStationInfo(Item.SubItems[0]);
 end;
 
 procedure TMainForm.Activity1Click(Sender: TObject);

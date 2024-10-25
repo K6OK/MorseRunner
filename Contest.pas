@@ -9,6 +9,7 @@ interface
 
 uses
   SndTypes, Station, StnColl, MyStn, Ini, Log, System.Classes,
+  ExchFields,
   MovAvg, Mixers, VolumCtl, DxStn;
 
 type
@@ -25,6 +26,8 @@ type
     constructor Create;
     function IsReloadRequired(const AUserCallsign : String) : boolean;
     procedure SetLastLoadCallsign(const AUserCallsign : String);
+    function ValidateExchField(const FieldDef: PFieldDefinition;
+      const Avalue: string) : Boolean;
 
   public
     BlockNumber: integer;
@@ -49,6 +52,9 @@ type
     function PickCallOnly : string;
 
     function OnSetMyCall(const AUserCallsign : string; out err : string) : boolean; virtual;
+    function ValidateMyExchange(const AExchange: string;
+      ATokens: TStringList;
+      out AExchError: string): boolean; virtual;
     function OnContestPrepareToStart(const AUserCallsign: string;
       const ASentExchange : string) : Boolean; virtual;
     procedure SerialNrModeChanged; virtual;
@@ -66,6 +72,17 @@ type
       const AStationCallsign : string) : TExchTypes; virtual;
     procedure SendMsg(const AStn: TStation; const AMsg: TStationMessage); virtual;
     procedure SendText(const AStn: TStation; const AMsg: string); virtual;
+    procedure OnWipeBoxes; virtual;
+    function OnExchangeEdit(const ACall, AExch1, AExch2: string;
+       out AExchSummary: string; out AExchError: string) : Boolean; virtual;
+    procedure OnExchangeEditComplete; virtual;
+    procedure SetHisCall(const ACall: string); virtual;
+
+    function CheckEnteredCallLength(const ACall: string;
+      out AExchError: String) : boolean; virtual;
+    function ValidateEnteredExchange(const ACall, AExch1, AExch2: string;
+      out AExchError: String) : boolean; virtual;
+    procedure SaveEnteredExchToQso(var Qso: TQso; const AExch1, AExch2: string); virtual;
     procedure FindQsoErrors(var Qso: TQso; var ACorrections: TStringList);
     function ExtractMultiplier(Qso: PQso) : string; virtual;
     function Minute: Single;
@@ -82,7 +99,9 @@ implementation
 
 uses
   SysUtils, RndFunc, Math, DxOper,
-  Main, CallLst, ARRL;
+  PerlRegEx,
+  VCL.Graphics,       // clDefault
+  Main, CallLst, DXCC;
 
 { TContest }
 
@@ -185,7 +204,7 @@ end;
 {
   GetStationInfo() returns station's DXCC information.
 
-  Adding a contest: UpdateSbar - update status bar with station info (e.g. FD shows UserText)
+  Adding a contest: SbarUpdateStationInfo - update status bar with station info (e.g. FD shows UserText)
   Override as needed for each contest.
 }
 function TContest.GetStationInfo(const ACallsign : string) : string;
@@ -221,6 +240,66 @@ begin
   Me.SentExchTypes:= GetSentExchTypes(skMyStation, AUserCallsign);
 
   Result:= True;
+end;
+
+
+{
+  Parse into two strings [Exch1, Exch2].
+  Validate each string and set error string in AExchError.
+  Return True upon success; False otherwise.
+}
+function TContest.ValidateMyExchange(const AExchange: string;
+  ATokens: TStringList;
+  out AExchError: string): boolean;
+var
+  SentExchTypes : TExchTypes;
+  Field1Def: PFieldDefinition;
+  Field2Def: PFieldDefinition;
+begin
+  SentExchTypes := Self.Me.SentExchTypes;
+  Field1Def := @Exchange1Settings[SentExchTypes.Exch1];
+  Field2Def := @Exchange2Settings[SentExchTypes.Exch2];
+
+  // parse into two strings [Exch1, Exch2]
+  ATokens.Clear;
+  ExtractStrings([' '], [], PChar(AExchange), ATokens);
+  if ATokens.Count = 0 then
+    ATokens.AddStrings(['', '']);
+  if ATokens.Count = 1 then
+    ATokens.AddStrings(['']);
+
+  // validate sent exchange strings
+  Result := ValidateExchField(Field1Def, ATokens[0]) and
+            ValidateExchField(Field2Def, ATokens[1]);
+
+  if not Result then
+    AExchError := Format('Invalid exchange: ''%s'' - expecting %s.',
+          [AExchange, ActiveContest.Msg]);
+end;
+
+function TContest.ValidateExchField(const FieldDef: PFieldDefinition;
+  const Avalue: string) : Boolean;
+var
+  reg: TPerlRegEx;
+  s: string;
+begin
+  if SimContest = scNaQp then begin
+    // special case - I can't figure out how to match an empty string,
+    // so manually check for an optional string.
+    s := FieldDef.R;
+    Result := s.StartsWith('()|(') and Avalue.IsEmpty;
+    if Result then Exit;
+  end;
+
+  reg := TPerlRegEx.Create();
+  try
+    reg.Subject := UTF8Encode(Avalue);
+    s:= '^(' + FieldDef.R + ')$';
+    reg.RegEx:= UTF8Encode(s);
+    Result:= Reg.Match;
+  finally
+    reg.Free;
+  end;
 end;
 
 
@@ -360,6 +439,54 @@ end;
 
 
 {
+  Called at end of each QSO or by user's Cntl-W (Wipe Boxes) keystroke.
+}
+procedure TContest.OnWipeBoxes;
+begin
+  Log.NrSent := False;
+  Log.DisplayError('', clDefault);
+end;
+
+
+{
+  Called after each keystroke of the Exch2 field (Edit3).
+}
+function TContest.OnExchangeEdit(const ACall, AExch1, AExch2: string;
+  out AExchSummary: string; out AExchError: string) : Boolean;
+begin
+  AExchSummary := '';
+  Result := False;
+end;
+
+
+{
+  Called at the start of each action/command after user has finished typing
+  in the Exchange fields. Can be overriden as needed for complex exchange
+  behaviors (e.g. ARRL SS).
+}
+procedure TContest.OnExchangeEditComplete;
+begin
+  Log.CallSent := (Mainform.Edit1.Text <> '') and
+    (Mainform.Edit1.Text = Self.Me.HisCall);
+end;
+
+
+{
+  SetHisCall will:
+  - sets TContest.Me.HisCall to the supplied callsign, ACall.
+  - sets Log.CallSent to False if the callsign should be sent.
+
+  Override as needed to provide more complex callsign behaviors (e.g. ARRL
+  Sweepstakes allows callsign corrections in the exchange).
+}
+procedure TContest.SetHisCall(const ACall: string);
+begin
+  if ACall <> '' then Self.Me.HisCall := ACall;
+  Log.CallSent := ACall <> '';
+end;
+
+
+{
   Find exchange errors in the current Qso.
   Called at end of each Qso during Qso validaiton.
   This virtual procedure can be overriden to perform special exchange
@@ -373,6 +500,125 @@ procedure TContest.FindQsoErrors(var Qso: TQso; var ACorrections: TStringList);
 begin
   Qso.CheckExch1(ACorrections);
   Qso.CheckExch2(ACorrections);
+end;
+
+
+{
+  Performs simple length check on a callsign.
+  Returns true for callsigns with 3 or more characters; false otherwise.
+  Upon error, AExchError will contain a simple error message.
+}
+function TContest.CheckEnteredCallLength(const ACall: string;
+  out AExchError: String) : boolean;
+begin
+  Result := StringReplace(ACall, '?', '', [rfReplaceAll]).Length >= 3;
+  if not Result then
+    AExchError := 'Invalid callsign';
+end;
+
+
+{
+  ValidateEnteredExchange is called prior to sending the final 'TU' and calling
+  SaveQSO (see Log.pas). The basic validation is a length test where each
+  exchange is checked against a minimum length requirement.
+  This is consistent with original 1.68 behaviors.
+
+  This virtual function can be overriden for complex exchange information
+  (e.g. ARRL Sweepstakes).
+}
+function TContest.ValidateEnteredExchange(const ACall, AExch1, AExch2: string;
+  out AExchError: String) : boolean;
+  // Adding a contest: validate contest-specific exchange fields
+  //validate Exchange 1 (Edit2) field lengths
+  function ValidateExchField1(const text: string): Boolean;
+  begin
+    Result := false;
+    case Mainform.RecvExchTypes.Exch1 of
+      etRST:     Result := Length(text) = 3;
+      etOpName:  Result := Length(text) > 1;
+      etFdClass: Result := Length(text) > 1;
+      else
+        assert(false, 'missing case');
+    end;
+  end;
+
+  //validate Exchange 2 (Edit3) field lengths
+  function ValidateExchField2(const text: string): Boolean;
+  begin
+    Result := false;
+    case Mainform.RecvExchTypes.Exch2 of
+      etSerialNr:    Result := Length(text) > 0;
+      etGenericField:Result := Length(text) > 0;
+      etArrlSection: Result := Length(text) > 1;
+      etStateProv:   Result := Length(text) > 1;
+      etCqZone:      Result := Length(text) > 0;
+      etItuZone:     Result := Length(text) > 0;
+      //etAge:
+      etPower:       Result := Length(text) > 0;
+      etJaPref:      Result := Length(text) > 2;
+      etJaCity:      Result := Length(text) > 3;
+      etNaQpExch2:   Result := Length(text) > 0;
+      etNaQpNonNaExch2: Result := Length(text) >= 0;
+      else
+        assert(false, 'missing case');
+    end;
+  end;
+
+begin
+  if not ValidateExchField1(AExch1) then
+    AExchError := format('Missing/Invalid %s',
+      [Exchange1Settings[Mainform.RecvExchTypes.Exch1].C])
+  else if not ValidateExchField2(AExch2) then
+    AExchError := format('Missing/Invalid %s',
+      [Exchange2Settings[Mainform.RecvExchTypes.Exch2].C])
+  else
+    AExchError := '';
+  Result := AExchError.IsEmpty;
+end;
+
+
+{
+  SaveEnteredExchToQso will save contest-specific exchange values into a QSO.
+  This is called by SaveQSO while saving the completed QSO into the log.
+  This virtual function can be overriden by specialized contests as needed
+  (see ARRL Sweepstakes).
+}
+procedure TContest.SaveEnteredExchToQso(var Qso: TQso; const AExch1, AExch2: string);
+begin
+    // Adding a contest: save contest-specific exchange values into QsoList
+    //save Exchange 1 (Edit2)
+    case Mainform.RecvExchTypes.Exch1 of
+      etRST:     Qso.Rst := StrToIntDef(AExch1, 0);
+      etOpName:  Qso.Exch1 := AExch1;
+      etFdClass: Qso.Exch1 := AExch1;
+      else
+        assert(false, 'missing case');
+    end;
+
+    //save Exchange2 (Edit3)
+    case Mainform.RecvExchTypes.Exch2 of
+      etSerialNr:    Qso.Nr := StrToIntDef(AExch2, 0);
+      etGenericField:Qso.Exch2 := AExch2;
+      etArrlSection: Qso.Exch2 := AExch2;
+      etStateProv:   Qso.Exch2 := AExch2;
+      etCqZone:      Qso.Exch2 := AExch2;
+      etItuZone:     Qso.Exch2 := AExch2;
+      //etAge:
+      etPower:       Qso.Exch2 := AExch2;
+      etJaPref:      Qso.Exch2 := AExch2;
+      etJaCity:      Qso.Exch2 := AExch2;
+      etNaQpExch2:   Qso.Exch2 := AExch2;
+      etNaQpNonNaExch2:
+        if AExch2 = '' then
+          Qso.Exch2 := 'DX'
+        else
+          Qso.Exch2 := AExch2;
+      else
+        assert(false, 'missing case');
+    end;
+
+  if Qso.Exch1.IsEmpty then Qso.Exch1 := '?';
+  if Qso.Exch2.IsEmpty then Qso.Exch2 := '?';
 end;
 
 
@@ -519,7 +765,19 @@ begin
                 Log.UpdateStatsHst
               else
                 Log.UpdateStats({AVerifyResults=}True);
+
+{
+              This code can be used to clear QSO info after 'TU' is sent.
+              However, this may be a multi-threading issue here because
+              this audio thread will be changing things being manipulated
+              by the GUI thread. Need more time to think through this one.
+
+              // clear any errors/status from last QSO
+              Log.DisplayError('', clDefault);
+              Log.SBarUpdateSummary('');
+}
           end;
+
   //show info
   ShowRate;
 
@@ -623,6 +881,7 @@ begin
              end;
           if z=0 then begin
              // No maximo fica 3 cq sem contesters
+             // (At most 3 cq without contesters)
              inc(NoActivityCnt);
              if ((NoActivityCnt > 2) or (NoStopActivity > 0) )  then begin
                  Stations.AddCaller;

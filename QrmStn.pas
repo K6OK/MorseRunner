@@ -13,7 +13,7 @@ uses
 type
   TQrmStation = class(TStation)
   private
-    Patience: integer;
+    Patience: integer;  // number of times station will retry sending messages.
   public
     constructor CreateStation;
     procedure ProcessEvent(AEvent: TStationEvent); override;
@@ -58,7 +58,7 @@ begin
       Dec(Patience);
       if Patience = 0
         then Free
-        else Timeout := Round(RndGaussLim(SecondsToBlocks(4), 2));
+        else Timeout := Round(RndGaussLim(SecondsToBlocks(4), SecondsToBlocks(2)));
       end;
     evTimeout:
       SendMsg(msgLongCQ);

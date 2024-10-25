@@ -1,8 +1,9 @@
-unit ARRL;
+unit DXCC;
 
 interface
 
 uses
+  Generics.Collections,
   Classes;
 
 type
@@ -18,12 +19,13 @@ type
 
   TDXCC= class
   private
-    DXCCList: TList;
+    DXCCList: TObjectList<TDXCCRec>;
     procedure LoadDxCCList;
     procedure Delimit(var AStringList: TStringList; const AText: string);
     function SearchPrefix(out index : integer; const ACallPrefix : string) : Boolean;
   public
     constructor Create;
+    destructor Destroy; override;
     function FindRec(out dxrec : TDXCCRec; const ACallsign : string) : Boolean;
     function GetStationInfo(const ACallsign: string): string;
     function Search(ACallsign: string): string;
@@ -35,7 +37,7 @@ var
 implementation
 
 uses
-    SysUtils, Contnrs, log, PerlRegEx, pcre, Ini;
+    SysUtils, Contnrs, log, PerlRegEx, Ini;
 
 procedure TDXCC.LoadDxCCList;
 var
@@ -46,8 +48,8 @@ begin
     slst:= TStringList.Create;
     tl:= TStringList.Create;
     try
-        DXCCList:= TList.Create;
-        slst.LoadFromFile(ParamStr(1) + 'ARRL.LIST');
+        DXCCList:= TObjectList<TDXCCRec>.Create;
+        slst.LoadFromFile(ParamStr(1) + 'DXCC.LIST');
 
         // The search algorithm walks this list in reverse order.
         for i:= 0 to slst.Count-1 do begin
@@ -75,6 +77,12 @@ constructor TDXCC.Create;
 begin
     inherited Create;
     LoadDxCCList;
+end;
+
+
+destructor TDXCC.Destroy;
+begin
+  FreeAndNil(DXCCList);
 end;
 
 // search ARRL DXCC prefix records for given callsign prefix.

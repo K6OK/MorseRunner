@@ -86,14 +86,14 @@ end;
 implementation
 
 uses
-  SysUtils, Classes, PerlRegEx, pcre,
+  SysUtils, Classes,
   Ini,
   System.Generics.Collections,
 {$ifdef DISTRIBUTION_REPORT}
   Dialogs,      // for ShowMessage
   Vcl.Clipbrd,  // for TClipBoard
 {$endif}
-  ARRL;
+  DXCC;
 
 var
   IntegerComparer: IComparer<Integer>;
