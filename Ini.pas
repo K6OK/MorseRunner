@@ -308,7 +308,7 @@ uses
   Math,           // for Min, Max
   SysUtils,       // for Format(),
   TypInfo,        // for typeInfo
-  Main, Contest;
+  Main, Contest, Settings;
 
 
 function ToStr(const val : TRunMode) : string; overload;
@@ -381,8 +381,8 @@ begin
       // load station settings...
       // Calls to SetMyCall, SetPitch, SetBw, etc., moved to MainForm.SetContest
       Call := ReadString(SEC_STN, 'Call', Call);
-      MainForm.ComboBox1.ItemIndex := ReadInteger(SEC_STN, 'Pitch', 3);
-      MainForm.ComboBox2.ItemIndex := ReadInteger(SEC_STN, 'BandWidth', 9);
+      MainForm.cmboCWPitch.ItemIndex := ReadInteger(SEC_STN, 'Pitch', 3);
+      MainForm.cmboRXBW.ItemIndex := ReadInteger(SEC_STN, 'BandWidth', 9);
 
       HamName := ReadString(SEC_STN, 'Name', '');
       DeleteKey(SEC_STN, 'cwopsnum');  // obsolete at v1.83
@@ -408,8 +408,8 @@ begin
       ReadSerialNRSetting(IniFile, snMidContest, SerialNrMidContestDef);
       ReadSerialNRSetting(IniFile, snEndContest, SerialNrEndContestDef);
       ReadSerialNRSetting(IniFile, snCustomRange, SerialNrCustomRangeDef);
-      MainForm.UpdSerialNRCustomRange(SerialNRSettings[snCustomRange].RangeStr);
-      MainForm.UpdSerialNR(ReadInteger(SEC_STN, 'SerialNR', Ord(SerialNR)));
+      frmSettings.UpdSerialNRCustomRange(SerialNRSettings[snCustomRange].RangeStr);
+      frmSettings.UpdSerialNR(ReadInteger(SEC_STN, 'SerialNR', Ord(SerialNR)));
 
       Wpm := ReadInteger(SEC_STN, 'Wpm', Wpm);
       Qsk := ReadBool(SEC_STN, 'Qsk', Qsk);
@@ -500,8 +500,8 @@ begin
       WriteString(SEC_STN, 'ArrlSection', ArrlSection);
 
       WriteString(SEC_STN, 'Call', Call);
-      WriteInteger(SEC_STN, 'Pitch', MainForm.ComboBox1.ItemIndex);
-      WriteInteger(SEC_STN, 'BandWidth', MainForm.ComboBox2.ItemIndex);
+      WriteInteger(SEC_STN, 'Pitch', MainForm.cmboCWPitch.ItemIndex);
+      WriteInteger(SEC_STN, 'BandWidth', MainForm.cmboRXBW.ItemIndex);
       WriteInteger(SEC_STN, 'Wpm', Wpm);
       WriteBool(SEC_STN, 'Qsk', Qsk);
 
