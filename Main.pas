@@ -18,7 +18,7 @@ uses
   ComCtrls, Spin, SndTypes,
   WavFile,
   ExchFields,   // for TFieldDefinition
-  System.ImageList, Vcl.ToolWin, Vcl.ImgList;
+  System.ImageList, Vcl.ToolWin, Vcl.ImgList, Settings;
 
 const
   WM_TBDOWN = WM_USER+1;
@@ -100,86 +100,16 @@ type
     Label7: TLabel;
     Label9: TLabel;
     Edit4: TEdit;
-    SpinEdit1: TSpinEdit;
+    spinCWSpeed: TSpinEdit;
     CheckBox1: TCheckBox;
-    ComboBox1: TComboBox;
-    ComboBox2: TComboBox;
+    cmboCWPitch: TComboBox;
+    cmboRXBW: TComboBox;
     VolumeSlider1: TVolumeSlider;
     Label18: TLabel;
     WebPage1: TMenuItem;
     FirstTime1: TMenuItem;
     Settings1: TMenuItem;
     Call1: TMenuItem;
-    QSK1: TMenuItem;
-    CWSpeed1: TMenuItem;
-    N10WPM1: TMenuItem;
-    N15WPM1: TMenuItem;
-    N20WPM1: TMenuItem;
-    N25WPM1: TMenuItem;
-    N30WPM1: TMenuItem;
-    N35WPM1: TMenuItem;
-    N40WPM1: TMenuItem;
-    N45WPM1: TMenuItem;
-    N50WPM1: TMenuItem;
-    N55WPM1: TMenuItem;
-    N60WPM1: TMenuItem;
-    CWBandwidth1: TMenuItem;
-    CWBandwidth2: TMenuItem;
-    N300Hz1: TMenuItem;
-    N350Hz1: TMenuItem;
-    N400Hz1: TMenuItem;
-    N450Hz1: TMenuItem;
-    N500Hz1: TMenuItem;
-    N550Hz1: TMenuItem;
-    N600Hz1: TMenuItem;
-    N650Hz1: TMenuItem;
-    N700Hz1: TMenuItem;
-    N750Hz1: TMenuItem;
-    N800Hz1: TMenuItem;
-    N850Hz1: TMenuItem;
-    N900Hz1: TMenuItem;
-    N100Hz1: TMenuItem;
-    N150Hz1: TMenuItem;
-    N200Hz1: TMenuItem;
-    N250Hz1: TMenuItem;
-    N300Hz2: TMenuItem;
-    N350Hz2: TMenuItem;
-    N400Hz2: TMenuItem;
-    N450Hz2: TMenuItem;
-    N500Hz2: TMenuItem;
-    N550Hz2: TMenuItem;
-    N600Hz2: TMenuItem;
-    MonLevel1: TMenuItem;
-    N30dB1: TMenuItem;
-    N20dB1: TMenuItem;
-    N10dB1: TMenuItem;
-    N0dB1: TMenuItem;
-    N10dB2: TMenuItem;
-    N6: TMenuItem;
-    QRN1: TMenuItem;
-    QRM1: TMenuItem;
-    QSB1: TMenuItem;
-    Flutter1: TMenuItem;
-    LIDS1: TMenuItem;
-    Activity1: TMenuItem;
-    N11: TMenuItem;
-    N21: TMenuItem;
-    N31: TMenuItem;
-    N41: TMenuItem;
-    N51: TMenuItem;
-    N61: TMenuItem;
-    N71: TMenuItem;
-    N81: TMenuItem;
-    N91: TMenuItem;
-    N7: TMenuItem;
-    Duration1: TMenuItem;
-    N5min1: TMenuItem;
-    N10min1: TMenuItem;
-    N15min1: TMenuItem;
-    N30min1: TMenuItem;
-    N60min1: TMenuItem;
-    N90min1: TMenuItem;
-    N120min1: TMenuItem;
     PlayRecordedAudio1: TMenuItem;
     N8: TMenuItem;
     AudioRecordingEnabled1: TMenuItem;
@@ -188,27 +118,6 @@ type
     ListView2: TListView;
     sbar: TPanel;
     mnuShowCallsignInfo: TMenuItem;
-    NRDigits1: TMenuItem;
-    SerialNRSet1: TMenuItem;
-    SerialNRSet2: TMenuItem;
-    SerialNRSet3: TMenuItem;
-    SerialNRCustomRange: TMenuItem;
-    CWMaxRxSpeed1: TMenuItem;
-    CWMinRxSpeed1: TMenuItem;
-    CWMinRxSpeedSet1: TMenuItem;
-    CWMinRxSpeedSet2: TMenuItem;
-    CWMinRxSpeedSet4: TMenuItem;
-    CWMinRxSpeedSet6: TMenuItem;
-    CWMinRxSpeedSet8: TMenuItem;
-    CWMinRxSpeedSet10: TMenuItem;
-    CWMinRxSpeedSet0: TMenuItem;
-    CWMaxRxSpeedSet0: TMenuItem;
-    CWMaxRxSpeedSet1: TMenuItem;
-    CWMaxRxSpeedSet2: TMenuItem;
-    CWMaxRxSpeedSet4: TMenuItem;
-    CWMaxRxSpeedSet6: TMenuItem;
-    CWMaxRxSpeedSet8: TMenuItem;
-    CWMaxRxSpeedSet10: TMenuItem;
     NRQM: TMenuItem;
     Label19: TLabel;
     Label20: TLabel;
@@ -241,7 +150,6 @@ type
     SpeedButton12: TSpeedButton;
     labelStatus: TLabel;
     Label23: TLabel;
-    Timer1: TTimer;
     comboActivity: TComboBox;
     Label31: TLabel;
     spdbtnResetRIT: TSpeedButton;
@@ -257,6 +165,9 @@ type
     Label25: TLabel;
     Label26: TLabel;
     Label28: TLabel;
+    mnuSettings: TMenuItem;
+    Timer1: TTimer;
+    N3: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure AlSoundOut1BufAvailable(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -273,10 +184,10 @@ type
       MousePos: TPoint; var Handled: Boolean);
     procedure SendClick(Sender: TObject);
     procedure Edit4Change(Sender: TObject);
-    procedure ComboBox2Change(Sender: TObject);
-    procedure ComboBox1Change(Sender: TObject);
+    procedure cmboRXBWChange(Sender: TObject);
+    procedure cmboCWPitchChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure SpinEdit1Change(Sender: TObject);
+    procedure spinCWSpeedChange(Sender: TObject);
     procedure CheckBox1Click(Sender: TObject);
     procedure CheckBoxClick(Sender: TObject);
     procedure SpinEdit2Change(Sender: TObject);
@@ -301,20 +212,12 @@ type
     procedure VolumeSlider1Change(Sender: TObject);
     procedure WebPage1Click(Sender: TObject);
     procedure Call1Click(Sender: TObject);
-    procedure QSK1Click(Sender: TObject);
     procedure NWPMClick(Sender: TObject);
     procedure Pitch1Click(Sender: TObject);
     procedure Bw1Click(Sender: TObject);
     procedure File1Click(Sender: TObject);
     procedure PlayRecordedAudio1Click(Sender: TObject);
     procedure AudioRecordingEnabled1Click(Sender: TObject);
-    procedure SelfMonClick(Sender: TObject);
-    procedure Settings1Click(Sender: TObject);
-    procedure LIDS1Click(Sender: TObject);
-    procedure CWMaxRxSpeedClick(Sender: TObject);
-    procedure CWMinRxSpeedClick(Sender: TObject);
-    procedure NRDigitsClick(Sender: TObject);
-    procedure SerialNRCustomRangeClick(Sender: TObject);
     procedure Activity1Click(Sender: TObject);
     procedure Duration1Click(Sender: TObject);
     procedure Operator1Click(Sender: TObject);
@@ -331,7 +234,7 @@ type
     procedure ExchangeEditChange(Sender: TObject);
     procedure ExchangeEditExit(Sender: TObject);
     procedure Edit4Exit(Sender: TObject);
-    procedure SpinEdit1Exit(Sender: TObject);
+    procedure spinCWSpeedExit(Sender: TObject);
     procedure Edit3Enter(Sender: TObject);
     procedure Edit3KeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure spdbtnStopClick(Sender: TObject);
@@ -344,7 +247,8 @@ type
     procedure Timer1Timer(Sender: TObject);
     procedure comboActivitySelect(Sender: TObject); // (K6OK)
     procedure comboModePopulate;
-    procedure SpeedButton12Click(Sender: TObject); // (K6OK)
+    procedure SpeedButton12Click(Sender: TObject);
+    procedure mnuSettingsClick(Sender: TObject); // (K6OK)
 
   private
     MustAdvance: boolean;       // Controls when Exchange fields advance
@@ -400,8 +304,6 @@ type
     procedure ReadCheckboxes;
     procedure UpdateTitleBar;
     procedure PostHiScore(const sScore: string);
-    procedure UpdSerialNR(V: integer {TSerialNRTypes});
-    procedure UpdSerialNRCustomRange(const ARange: string);
     procedure UpdCWMinRxSpeed(minspd: integer);
     procedure UpdCWMaxRxSpeed(Maxspd: integer);
     procedure ClientHTTP1Redirect(Sender: TObject; var dest: string;
@@ -583,8 +485,8 @@ procedure TMainForm.SendMsg(AMsg: TStationMessage);
 begin
   // special case for CW Speed control having focus and user presses
   // a key or function key (which do not cause a leave-focus event).
-  if SpinEdit1.Focused then
-    SpinEdit1Exit(SpinEdit1);
+  if spinCWSpeed.Focused then
+    spinCWSpeedExit(spinCWSpeed);
 
   if AMsg = msgHisCall then begin
     // retain current callsign, including ''.
@@ -871,14 +773,14 @@ begin
     VK_UP:
       begin
         if GetKeyState(VK_CONTROL) >= 0 then IncRit(1)
-          else if RunMode <> rmHst then SetBw(ComboBox2.ItemIndex+1);
+          else if RunMode <> rmHst then SetBw(cmboRXBW.ItemIndex+1);
         if (ssShift in Shift) then IncRit(0);    //Shift-UpArrow resets RIT
       end;
 
     VK_DOWN:
       begin
         if GetKeyState(VK_CONTROL) >= 0  then IncRit(-1)
-          else if RunMode <> rmHst then SetBw(ComboBox2.ItemIndex-1);
+          else if RunMode <> rmHst then SetBw(cmboRXBW.ItemIndex-1);
         if (ssShift in Shift) then IncRit(0);    //Shift-DownArrow resets RIT
       end;
 
@@ -992,10 +894,10 @@ begin
       Edit4Exit(ActiveControl);
       Exit;
     end;
-  if ActiveControl = SpinEdit1 then
+  if ActiveControl = spinCWSpeed then
     begin
       // exit CW Speed Control
-      SpinEdit1Exit(ActiveControl);
+      spinCWSpeedExit(ActiveControl);
       if Ini.pgmState = psStop then
         Exit;
     end;
@@ -1034,7 +936,7 @@ begin
     // special case - Cursor is in either CW Speed or Activity Spin Control
     // when Enter key is pushed. Move cursor to the next QSO Exchange field.
     if (Ini.pgmState = psRun) and
-          ((ActiveControl = SpinEdit1) or (ActiveControl = SpinEdit3)) then
+          ((ActiveControl = spinCWSpeed) or (ActiveControl = SpinEdit3)) then
       MustAdvance := true;
     Exit;
   end;
@@ -1102,7 +1004,7 @@ procedure TMainForm.FormMouseWheelDown(Sender: TObject; Shift: TShiftState;
   MousePos: TPoint; var Handled: Boolean);
 begin
   if GetKeyState(VK_CONTROL) >= 0  then IncRit(1)
-  else if RunMode <> rmHst then SetBw(ComboBox2.ItemIndex-1);
+  else if RunMode <> rmHst then SetBw(cmboRXBW.ItemIndex-1);
   Handled := true;  // set Handled to prevent being called 3 times
 end;
 
@@ -1110,7 +1012,7 @@ procedure TMainForm.FormMouseWheelUp(Sender: TObject; Shift: TShiftState;
   MousePos: TPoint; var Handled: Boolean);
 begin
   if GetKeyState(VK_CONTROL) >= 0 then IncRit(-1)
-  else if RunMode <> rmHst then SetBw(ComboBox2.ItemIndex+1);
+  else if RunMode <> rmHst then SetBw(cmboRXBW.ItemIndex+1);
   Handled := true;  // set Handled to prevent being called 3 times
 end;
 
@@ -1214,8 +1116,8 @@ begin
 
     // set user's call - also calls SetMyExchange and ConfigureExchangeFields.
     SetMyCall(UpperCase(Ini.Call));
-    SetPitch(ComboBox1.ItemIndex);
-    SetBw(ComboBox2.ItemIndex);
+    SetPitch(cmboCWPitch.ItemIndex);
+    SetBw(cmboRXBW.ItemIndex);
     SetWpm(Ini.Wpm);
     SetQsk(Ini.Qsk);
 
@@ -1644,22 +1546,22 @@ end;
 }
 procedure TMainForm.SetPitch(PitchNo: integer);
 begin
-  PitchNo := Max(0, Min(PitchNo, ComboBox1.Items.Count-1));
+  PitchNo := Max(0, Min(PitchNo, cmboCWPitch.Items.Count-1));
   Ini.Pitch := 300 + PitchNo * 50;
-  ComboBox1.ItemIndex := PitchNo;
+  cmboCWPitch.ItemIndex := PitchNo;
   Tst.Modul.CarrierFreq := Ini.Pitch;
 end;
 
 
 {
   Set bandwidth based on menu item number.
-  Must be within range [0, ComboBox2.Items.Count).
+  Must be within range [0, cmboRXBW.Items.Count).
 }
 procedure TMainForm.SetBw(BwNo: integer);
 begin
-  BwNo := Max(0, Min(BwNo, ComboBox2.Items.Count-1));
+  BwNo := Max(0, Min(BwNo, cmboRXBW.Items.Count-1));
   Ini.Bandwidth := 100 + BwNo * 50;
-  ComboBox2.ItemIndex := BwNo;
+  cmboRXBW.ItemIndex := BwNo;
 
   Tst.Filt.Points := Round(0.7 * DEFAULTRATE / Ini.BandWidth);
   Tst.Filt.GainDb := 10 * Log10(500/Ini.Bandwidth);
@@ -1736,9 +1638,9 @@ begin
 end;
 
 
-procedure TMainForm.ComboBox2Change(Sender: TObject);
+procedure TMainForm.cmboRXBWChange(Sender: TObject);
 begin
-  SetBw(ComboBox2.ItemIndex);
+  SetBw(cmboRXBW.ItemIndex);
 end;
 
 //ComboBox selects Pileup, Single Calls, etc. -- (K6OK)
@@ -1747,9 +1649,9 @@ begin
   SetDefaultRunMode(comboMode.ItemIndex);
 end;
 
-procedure TMainForm.ComboBox1Change(Sender: TObject);
+procedure TMainForm.cmboCWPitchChange(Sender: TObject);
 begin
-  SetPitch(ComboBox1.ItemIndex);
+  SetPitch(cmboCWPitch.ItemIndex);
 end;
 
 procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -1758,9 +1660,9 @@ begin
   if AlWavFile1.IsOpen then AlWavFile1.Close;
 end;
 
-procedure TMainForm.SpinEdit1Change(Sender: TObject);
+procedure TMainForm.spinCWSpeedChange(Sender: TObject);
 begin
-  if SpinEdit1.Focused then
+  if spinCWSpeed.Focused then
   begin
     // CW Speed edit has occurred while focus is within the spin edit control.
     // Mark this value as dirty and defer the call to SetWpm until edit is
@@ -1768,17 +1670,18 @@ begin
     CWSpeedDirty := True
   end
   else
-    SetWpm(SpinEdit1.Value);
+    SetWpm(spinCWSpeed.Value);
+    
 end;
 
 {
   Called when user leaves CW Speed Control or user presses Enter key.
 }
-procedure TMainForm.SpinEdit1Exit(Sender: TObject);
+procedure TMainForm.spinCWSpeedExit(Sender: TObject);
 begin
   // call SetWpm if the CW Speed has been edited
   if CWSpeedDirty then
-    SetWpm(SpinEdit1.Value);
+    SetWpm(spinCWSpeed.Value);
 end;
 
 procedure TMainForm.CheckBox1Click(Sender: TObject);
@@ -2085,25 +1988,25 @@ begin
   ViewScoreTable1.Enabled:= BStop;  // by bg4fqd
 
   Call1.Enabled := BStop;
-  Duration1.Enabled := BStop;
-  QRN1.Enabled := not BCompet;
-  QRM1.Enabled := not BCompet;
-  QSB1.Enabled := not BCompet;
-  Flutter1.Enabled := not BCompet;
-  Lids1.Enabled := not BCompet;
+  //Duration1.Enabled := BStop;
+  //QRN1.Enabled := not BCompet;  do this to Settings dialog?
+  //QRM1.Enabled := not BCompet;
+  //QSB1.Enabled := not BCompet;
+  //Flutter1.Enabled := not BCompet;
+  //Lids1.Enabled := not BCompet;
 
   //hst specific
-  Activity1.Enabled := Value <> rmHst;
-  CWBandwidth2.Enabled := Value <> rmHst;
-  CWMinRxSpeed1.Enabled := Value <> rmHst;
-  CWMaxRxSpeed1.Enabled := Value <> rmHst;
-  NRDigits1.Enabled := Value <> rmHst;
+  //Activity1.Enabled := Value <> rmHst;
+  //cmboRXBW.Enabled := Value <> rmHst;
+  //CWMinRxSpeed1.Enabled := Value <> rmHst;  do this to Settings dialog?
+  //CWMaxRxSpeed1.Enabled := Value <> rmHst;
+  //NRDigits1.Enabled := Value <> rmHst;
 
   EnableCtl(SpinEdit3, RunMode <> rmHst);
   if RunMode = rmHst then SpinEdit3.Value := 4;
 
-  EnableCtl(ComboBox2, RunMode <> rmHst);
-  if RunMode = rmHst then begin ComboBox2.ItemIndex :=10; SetBw(10); end;
+  EnableCtl(cmboRXBW, RunMode <> rmHst);
+  if RunMode = rmHst then begin cmboRXBW.ItemIndex :=10; SetBw(10); end;
 
   if RunMode = rmHst then ListView1.Visible := false
   else ListView1.Visible := true;
@@ -2370,6 +2273,11 @@ begin
 end;
 
 
+procedure TMainForm.mnuSettingsClick(Sender: TObject);
+begin
+  frmSettings.Show;
+end;
+
 procedure TMainForm.mnuShowCallsignInfoClick(Sender: TObject);
 begin
     with Sender as TMenuItem do begin
@@ -2579,12 +2487,6 @@ begin
 end;
 
 
-procedure TMainForm.QSK1Click(Sender: TObject);
-begin
-  SetQsk(not QSK1.Checked);
-end;
-
-
 procedure TMainForm.NWPMClick(Sender: TObject);
 begin
   SetWpm((Sender as TMenuItem).Tag);
@@ -2594,7 +2496,7 @@ end;
 procedure TMainForm.SetWpm(AWpm : integer);
 begin
   Wpm := Max(10, Min(120, AWpm));
-  SpinEdit1.Value := Wpm;
+  spinCWSpeed.Value := Wpm;
   Tst.Me.SetWpm(Wpm);
 
   CWSpeedDirty := False;
@@ -2638,169 +2540,18 @@ begin
 end;
 
 
-procedure TMainForm.SelfMonClick(Sender: TObject);
-begin
-  VolumeSlider1.Value := (Sender as TMenuItem).Tag / 80 + 0.75;
-  VolumeSlider1.OnChange(Sender);
-end;
-
-procedure TMainForm.Settings1Click(Sender: TObject);
-begin
-  QSK1.Checked := Ini.Qsk;
-  QRN1.Checked := Ini.Qrn;
-  QRM1.Checked := Ini.Qrm;
-  QSB1.Checked := Ini.Qsb;
-  Flutter1.Checked := Ini.Flutter;
-  LIDS1.Checked := Ini.Lids;
-end;
-
-
-procedure TMainForm.CWMaxRxSpeedClick(Sender: TObject);
-Var
-  maxspd:integer;
-begin
-  maxspd := (Sender as TMenuItem).Tag;
-
-  UpdCWMaxRxSpeed(maxspd);
-end;
-
-
 procedure TMainForm.UpdCWMaxRxSpeed(Maxspd: integer);
 begin
   Ini.MaxRxWpm := Maxspd;
-  CWMaxRxSpeedSet0.checked := maxspd = 0;
-  CWMaxRxSpeedSet1.checked := maxspd = 1;
-  CWMaxRxSpeedSet2.checked := maxspd = 2;
-  CWMaxRxSpeedSet4.checked := maxspd = 4;
-  CWMaxRxSpeedSet6.checked := maxspd = 6;
-  CWMaxRxSpeedSet8.checked := maxspd = 8;
-  CWMaxRxSpeedSet10.checked := maxspd = 10;
-end;
-
-
-procedure TMainForm.CWMinRxSpeedClick(Sender: TObject);
-Var
-  minspd:integer;
-begin
-  minspd := (Sender as TMenuItem).Tag;
-
-  UpdCWMinRxSpeed(minspd);
 end;
 
 
 procedure TMainForm.UpdCWMinRxSpeed(minspd: integer);
 begin
-   if (Wpm < 15) and  (minspd > 4) then
+  if (Wpm < 15) and  (minspd > 4) then
             minspd := 4;
 
   Ini.MinRxWpm := minspd;
-  CWMinRxSpeedSet0.checked := minspd = 0;
-  CWMinRxSpeedSet1.checked := minspd = 1;
-  CWMinRxSpeedSet2.checked := minspd = 2;
-  CWMinRxSpeedSet4.checked := minspd = 4;
-  CWMinRxSpeedSet6.checked := minspd = 6;
-  CWMinRxSpeedSet8.checked := minspd = 8;
-  CWMinRxSpeedSet10.checked := minspd = 10;
-end;
-
-procedure TMainForm.NRDigitsClick(Sender: TObject);
-Var
-  snt: integer;
-begin
-  snt := (Sender as TMenuItem).Tag;
-
-  UpdSerialNR(snt);
-end;
-
-
-procedure TMainForm.SerialNRCustomRangeClick(Sender: TObject);
-Var
-  snt:integer;
-  RangeStr: string;
-  ClickedOK, Done: boolean;
-  tempRange : TSerialNRSettings;
-  Err: string;
-begin
-  snt := (Sender as TMenuItem).Tag;
-
-  tempRange := Ini.SerialNRSettings[snCustomRange];
-  RangeStr := tempRange.RangeStr;
-  Done := False;
-  repeat
-    begin
-      ClickedOK := Dialogs.InputQuery('Enter Custom Serial Number Range',
-        'Enter min-max values (e.g. 01-99):',
-        RangeStr);
-      if not ClickedOK then break;
-
-      // split into two strings [Min, Max)
-      tempRange.ParseSerialNR(RangeStr, Err);
-
-      if Err <> '' then
-        begin
-          // report error and try again
-          MessageDlg(Err, mtError, [mbOK], 0);
-        end
-      else
-        begin
-          Ini.SerialNRSettings[snCustomRange] := tempRange;
-          UpdSerialNRCustomRange(tempRange.RangeStr);
-          UpdSerialNR(snt);
-          Done := true;
-        end;
-    end;
-  until (Done);
-end;
-
-
-procedure TMainForm.UpdSerialNR(V: integer);
-begin
-  assert(Ord(snStartContest) = SerialNRSet1.Tag);
-  assert(Ord(snMidContest) = SerialNRSet2.Tag);
-  assert(Ord(snEndContest) = SerialNRSet3.Tag);
-  assert(Ord(snCustomRange) = SerialNRCustomRange.Tag);
-
-  var snt : TSerialNrTypes := TSerialNrTypes(V);
-
-  // validate custom serial number range; if invalid, set to Start of Contest
-  if not Ini.SerialNRSettings[snt].IsValid then
-    snt := snStartContest;
-
-  Ini.SerialNR := snt;
-  SerialNRSet1.Checked := snt = snStartContest;
-  SerialNRSet2.Checked := snt = snMidContest;
-  SerialNRSet3.Checked := snt = snEndContest;
-  SerialNRCustomRange.Checked := snt = snCustomRange;
-
-  // update contest-specific settings/caches (e.g. SerialNR Generator for CQ Wpx)
-  if (pgmState = psRun) and (RunMode <> rmHST) then
-    Tst.SerialNrModeChanged;
-end;
-
-
-procedure TMainForm.UpdSerialNRCustomRange(const ARange: string);
-begin
-  if Ini.SerialNRSettings[snCustomRange].IsValid then
-    SerialNRCustomRange.Caption := Format('Custom Range (%s)...', [ARange])
-  else
-    SerialNRCustomRange.Caption := 'Custom Range...';
-end;
-
-
-//ALL checkboxes
-
-
-procedure TMainForm.LIDS1Click(Sender: TObject);
-begin
-  with Sender as TMenuItem do Checked := not Checked;
-
-  CheckBox4.Checked := QRN1.Checked;
-  CheckBox3.Checked := QRM1.Checked;
-  CheckBox2.Checked := QSB1.Checked;
-  CheckBox5.Checked := Flutter1.Checked;
-  CheckBox6.Checked := LIDS1.Checked;
-
-  ReadCheckboxes;
 end;
 
 

@@ -890,7 +890,7 @@ object MainForm: TMainForm
         OnChange = Edit4Change
         OnExit = Edit4Exit
       end
-      object SpinEdit1: TSpinEdit
+      object spinCWSpeed: TSpinEdit
         Left = 91
         Top = 43
         Width = 65
@@ -901,8 +901,8 @@ object MainForm: TMainForm
         MinValue = 10
         TabOrder = 2
         Value = 25
-        OnChange = SpinEdit1Change
-        OnExit = SpinEdit1Exit
+        OnChange = spinCWSpeedChange
+        OnExit = spinCWSpeedExit
       end
       object CheckBox1: TCheckBox
         Left = 140
@@ -914,7 +914,7 @@ object MainForm: TMainForm
         TabOrder = 1
         OnClick = CheckBox1Click
       end
-      object ComboBox1: TComboBox
+      object cmboCWPitch: TComboBox
         Left = 92
         Top = 73
         Width = 65
@@ -923,7 +923,7 @@ object MainForm: TMainForm
         DropDownCount = 12
         TabOrder = 3
         TabStop = False
-        OnChange = ComboBox1Change
+        OnChange = cmboCWPitchChange
         Items.Strings = (
           '300 Hz'
           '350 Hz'
@@ -939,7 +939,7 @@ object MainForm: TMainForm
           '850 Hz'
           '900 Hz')
       end
-      object ComboBox2: TComboBox
+      object cmboRXBW: TComboBox
         Left = 92
         Top = 102
         Width = 65
@@ -948,7 +948,7 @@ object MainForm: TMainForm
         DropDownCount = 12
         TabOrder = 4
         TabStop = False
-        OnChange = ComboBox2Change
+        OnChange = cmboRXBWChange
         Items.Strings = (
           '100 Hz'
           '150 Hz'
@@ -1240,7 +1240,7 @@ object MainForm: TMainForm
     end
     object Label30: TLabel
       Left = 663
-      Top = 9
+      Top = 12
       Width = 46
       Height = 15
       Caption = 'Duration'
@@ -1406,13 +1406,11 @@ object MainForm: TMainForm
       object PileUp1: TMenuItem
         Tag = 1
         Caption = 'Pile-Up'
-        ShortCut = 120
         OnClick = RunMNUClick
       end
       object SingleCalls1: TMenuItem
         Tag = 2
         Caption = 'Single Calls'
-        ShortCut = 8312
         OnClick = RunMNUClick
       end
       object Competition1: TMenuItem
@@ -1423,7 +1421,6 @@ object MainForm: TMainForm
       object HSTCompetition2: TMenuItem
         Tag = 4
         Caption = 'HST Competition'
-        ShortCut = 16504
         OnClick = RunMNUClick
       end
       object Stop1MNU: TMenuItem
@@ -1492,434 +1489,9 @@ object MainForm: TMainForm
     end
     object Settings1: TMenuItem
       Caption = 'Settings'
-      OnClick = Settings1Click
       object Call1: TMenuItem
         Caption = 'Call...'
         OnClick = Call1Click
-      end
-      object QSK1: TMenuItem
-        Caption = 'QSK'
-        OnClick = QSK1Click
-      end
-      object CWSpeed1: TMenuItem
-        Caption = 'CW Speed'
-        object N10WPM1: TMenuItem
-          Tag = 10
-          Caption = '10 WPM'
-          OnClick = NWPMClick
-        end
-        object N15WPM1: TMenuItem
-          Tag = 15
-          Caption = '15 WPM'
-          OnClick = NWPMClick
-        end
-        object N20WPM1: TMenuItem
-          Tag = 20
-          Caption = '20 WPM'
-          OnClick = NWPMClick
-        end
-        object N25WPM1: TMenuItem
-          Tag = 25
-          Caption = '25 WPM'
-          OnClick = NWPMClick
-        end
-        object N30WPM1: TMenuItem
-          Tag = 30
-          Caption = '30 WPM'
-          OnClick = NWPMClick
-        end
-        object N35WPM1: TMenuItem
-          Tag = 35
-          Caption = '35 WPM'
-          OnClick = NWPMClick
-        end
-        object N40WPM1: TMenuItem
-          Tag = 40
-          Caption = '40 WPM'
-          OnClick = NWPMClick
-        end
-        object N45WPM1: TMenuItem
-          Tag = 45
-          Caption = '45 WPM'
-          OnClick = NWPMClick
-        end
-        object N50WPM1: TMenuItem
-          Tag = 50
-          Caption = '50 WPM'
-          OnClick = NWPMClick
-        end
-        object N55WPM1: TMenuItem
-          Tag = 55
-          Caption = '55 WPM'
-          OnClick = NWPMClick
-        end
-        object N60WPM1: TMenuItem
-          Tag = 60
-          Caption = '60 WPM'
-          OnClick = NWPMClick
-        end
-      end
-      object CWMinRxSpeed1: TMenuItem
-        Caption = 'CW Min Rx Speed'
-        object CWMinRxSpeedSet0: TMenuItem
-          Caption = '0'
-          OnClick = CWMinRxSpeedClick
-        end
-        object CWMinRxSpeedSet1: TMenuItem
-          Tag = 1
-          Caption = '-1'
-          OnClick = CWMinRxSpeedClick
-        end
-        object CWMinRxSpeedSet2: TMenuItem
-          Tag = 2
-          Caption = '-2'
-          OnClick = CWMinRxSpeedClick
-        end
-        object CWMinRxSpeedSet4: TMenuItem
-          Tag = 4
-          Caption = '-4'
-          OnClick = CWMinRxSpeedClick
-        end
-        object CWMinRxSpeedSet6: TMenuItem
-          Tag = 6
-          Caption = '-6'
-          OnClick = CWMinRxSpeedClick
-        end
-        object CWMinRxSpeedSet8: TMenuItem
-          Tag = 8
-          Caption = '-8'
-          OnClick = CWMinRxSpeedClick
-        end
-        object CWMinRxSpeedSet10: TMenuItem
-          Tag = 10
-          Caption = '-10'
-          OnClick = CWMinRxSpeedClick
-        end
-      end
-      object CWMaxRxSpeed1: TMenuItem
-        Caption = 'CW Max Rx Speed'
-        object CWMaxRxSpeedSet0: TMenuItem
-          Caption = '0'
-          OnClick = CWMaxRxSpeedClick
-        end
-        object CWMaxRxSpeedSet1: TMenuItem
-          Tag = 1
-          Caption = '+1'
-          OnClick = CWMaxRxSpeedClick
-        end
-        object CWMaxRxSpeedSet2: TMenuItem
-          Tag = 2
-          Caption = '+2'
-          OnClick = CWMaxRxSpeedClick
-        end
-        object CWMaxRxSpeedSet4: TMenuItem
-          Tag = 4
-          Caption = '+4'
-          OnClick = CWMaxRxSpeedClick
-        end
-        object CWMaxRxSpeedSet6: TMenuItem
-          Tag = 6
-          Caption = '+6'
-          OnClick = CWMaxRxSpeedClick
-        end
-        object CWMaxRxSpeedSet8: TMenuItem
-          Tag = 8
-          Caption = '+8'
-          OnClick = CWMaxRxSpeedClick
-        end
-        object CWMaxRxSpeedSet10: TMenuItem
-          Tag = 10
-          Caption = '+10'
-          OnClick = CWMaxRxSpeedClick
-        end
-      end
-      object CWBandwidth1: TMenuItem
-        Caption = 'CW Pitch'
-        object N300Hz1: TMenuItem
-          Caption = '300 Hz'
-          OnClick = Pitch1Click
-        end
-        object N350Hz1: TMenuItem
-          Tag = 1
-          Caption = '350 Hz'
-          OnClick = Pitch1Click
-        end
-        object N400Hz1: TMenuItem
-          Tag = 2
-          Caption = '400 Hz'
-          OnClick = Pitch1Click
-        end
-        object N450Hz1: TMenuItem
-          Tag = 3
-          Caption = '450 Hz'
-          OnClick = Pitch1Click
-        end
-        object N500Hz1: TMenuItem
-          Tag = 4
-          Caption = '500 Hz'
-          OnClick = Pitch1Click
-        end
-        object N550Hz1: TMenuItem
-          Tag = 5
-          Caption = '550 Hz'
-          OnClick = Pitch1Click
-        end
-        object N600Hz1: TMenuItem
-          Tag = 6
-          Caption = '600 Hz'
-          OnClick = Pitch1Click
-        end
-        object N650Hz1: TMenuItem
-          Tag = 7
-          Caption = '650 Hz'
-          OnClick = Pitch1Click
-        end
-        object N700Hz1: TMenuItem
-          Tag = 8
-          Caption = '700 Hz'
-          OnClick = Pitch1Click
-        end
-        object N750Hz1: TMenuItem
-          Tag = 9
-          Caption = '750 Hz'
-          OnClick = Pitch1Click
-        end
-        object N800Hz1: TMenuItem
-          Tag = 10
-          Caption = '800 Hz'
-          OnClick = Pitch1Click
-        end
-        object N850Hz1: TMenuItem
-          Tag = 11
-          Caption = '850 Hz'
-          OnClick = Pitch1Click
-        end
-        object N900Hz1: TMenuItem
-          Tag = 12
-          Caption = '900 Hz'
-          OnClick = Pitch1Click
-        end
-      end
-      object CWBandwidth2: TMenuItem
-        Caption = 'CW Bandwidth'
-        object N100Hz1: TMenuItem
-          Caption = '100 Hz'
-          OnClick = Bw1Click
-        end
-        object N150Hz1: TMenuItem
-          Tag = 1
-          Caption = '150 Hz'
-          OnClick = Bw1Click
-        end
-        object N200Hz1: TMenuItem
-          Tag = 2
-          Caption = '200 Hz'
-          OnClick = Bw1Click
-        end
-        object N250Hz1: TMenuItem
-          Tag = 3
-          Caption = '250 Hz'
-          OnClick = Bw1Click
-        end
-        object N300Hz2: TMenuItem
-          Tag = 4
-          Caption = '300 Hz'
-          OnClick = Bw1Click
-        end
-        object N350Hz2: TMenuItem
-          Tag = 5
-          Caption = '350 Hz'
-          OnClick = Bw1Click
-        end
-        object N400Hz2: TMenuItem
-          Tag = 6
-          Caption = '400 Hz'
-          OnClick = Bw1Click
-        end
-        object N450Hz2: TMenuItem
-          Tag = 7
-          Caption = '450 Hz'
-          OnClick = Bw1Click
-        end
-        object N500Hz2: TMenuItem
-          Tag = 8
-          Caption = '500 Hz'
-          OnClick = Bw1Click
-        end
-        object N550Hz2: TMenuItem
-          Tag = 9
-          Caption = '550 Hz'
-          OnClick = Bw1Click
-        end
-        object N600Hz2: TMenuItem
-          Tag = 10
-          Caption = '600 Hz'
-          OnClick = Bw1Click
-        end
-      end
-      object MonLevel1: TMenuItem
-        Tag = -30
-        Caption = 'Mon. Level'
-        object N30dB1: TMenuItem
-          Tag = -60
-          Caption = '-60 dB'
-          OnClick = SelfMonClick
-        end
-        object N20dB1: TMenuItem
-          Tag = -40
-          Caption = '-40 dB'
-          OnClick = SelfMonClick
-        end
-        object N10dB1: TMenuItem
-          Tag = -20
-          Caption = '-20 dB'
-          OnClick = SelfMonClick
-        end
-        object N0dB1: TMenuItem
-          Caption = '0 dB'
-          OnClick = SelfMonClick
-        end
-        object N10dB2: TMenuItem
-          Tag = 20
-          Caption = '+20 dB'
-          OnClick = SelfMonClick
-        end
-      end
-      object NRDigits1: TMenuItem
-        Tag = 3
-        Caption = 'Serial NR'
-        object SerialNRSet1: TMenuItem
-          Caption = 'Start of Contest (Default)'
-          Checked = True
-          OnClick = NRDigitsClick
-        end
-        object SerialNRSet2: TMenuItem
-          Tag = 1
-          Caption = 'Mid-Contest (50-500)'
-          OnClick = NRDigitsClick
-        end
-        object SerialNRSet3: TMenuItem
-          Tag = 2
-          Caption = 'End of Contest (500-5000)'
-          OnClick = NRDigitsClick
-        end
-        object SerialNRCustomRange: TMenuItem
-          Tag = 3
-          Caption = 'Custom Range (01-99)...'
-          OnClick = SerialNRCustomRangeClick
-        end
-      end
-      object N6: TMenuItem
-        Caption = '-'
-      end
-      object QRN1: TMenuItem
-        Caption = 'QRN'
-        OnClick = LIDS1Click
-      end
-      object QRM1: TMenuItem
-        Caption = 'QRM'
-        OnClick = LIDS1Click
-      end
-      object QSB1: TMenuItem
-        Caption = 'QSB'
-        OnClick = LIDS1Click
-      end
-      object Flutter1: TMenuItem
-        Caption = 'Flutter'
-        OnClick = LIDS1Click
-      end
-      object LIDS1: TMenuItem
-        Caption = 'LIDS'
-        OnClick = LIDS1Click
-      end
-      object Activity1: TMenuItem
-        Caption = 'Activity'
-        object N11: TMenuItem
-          Tag = 1
-          Caption = '1'
-          OnClick = Activity1Click
-        end
-        object N21: TMenuItem
-          Tag = 2
-          Caption = '2'
-          OnClick = Activity1Click
-        end
-        object N31: TMenuItem
-          Tag = 3
-          Caption = '3'
-          OnClick = Activity1Click
-        end
-        object N41: TMenuItem
-          Tag = 4
-          Caption = '4'
-          OnClick = Activity1Click
-        end
-        object N51: TMenuItem
-          Tag = 5
-          Caption = '5'
-          OnClick = Activity1Click
-        end
-        object N61: TMenuItem
-          Tag = 6
-          Caption = '6'
-          OnClick = Activity1Click
-        end
-        object N71: TMenuItem
-          Tag = 7
-          Caption = '7'
-          OnClick = Activity1Click
-        end
-        object N81: TMenuItem
-          Tag = 8
-          Caption = '8'
-          OnClick = Activity1Click
-        end
-        object N91: TMenuItem
-          Tag = 9
-          Caption = '9'
-          OnClick = Activity1Click
-        end
-      end
-      object N7: TMenuItem
-        Caption = '-'
-      end
-      object Duration1: TMenuItem
-        Caption = 'Duration'
-        object N5min1: TMenuItem
-          Tag = 5
-          Caption = '5 min'
-          OnClick = Duration1Click
-        end
-        object N10min1: TMenuItem
-          Tag = 10
-          Caption = '10 min'
-          OnClick = Duration1Click
-        end
-        object N15min1: TMenuItem
-          Tag = 15
-          Caption = '15 min'
-          OnClick = Duration1Click
-        end
-        object N30min1: TMenuItem
-          Tag = 30
-          Caption = '30 min'
-          OnClick = Duration1Click
-        end
-        object N60min1: TMenuItem
-          Tag = 60
-          Caption = '60 min'
-          OnClick = Duration1Click
-        end
-        object N90min1: TMenuItem
-          Tag = 90
-          Caption = '90 min'
-          OnClick = Duration1Click
-        end
-        object N120min1: TMenuItem
-          Tag = 120
-          Caption = '120 min'
-          OnClick = Duration1Click
-        end
       end
       object Operator1: TMenuItem
         Caption = 'HST Operator'
@@ -1928,6 +1500,13 @@ object MainForm: TMainForm
       object mnuShowCallsignInfo: TMenuItem
         Caption = 'Show Callsign Info'
         OnClick = mnuShowCallsignInfoClick
+      end
+      object N3: TMenuItem
+        Caption = '-'
+      end
+      object mnuSettings: TMenuItem
+        Caption = 'Settings...'
+        OnClick = mnuSettingsClick
       end
     end
     object Help1: TMenuItem
@@ -2395,10 +1974,7 @@ object MainForm: TMainForm
     Top = 204
   end
   object Timer1: TTimer
-    Enabled = False
-    Interval = 250
-    OnTimer = Timer1Timer
-    Left = 440
-    Top = 147
+    Left = 432
+    Top = 219
   end
 end

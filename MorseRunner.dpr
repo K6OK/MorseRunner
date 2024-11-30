@@ -51,7 +51,8 @@ uses
   SerNRGen in 'SerNRGen.pas',
   Lexer in 'Util\Lexer.pas',
   ArrlSections in 'Util\ArrlSections.pas',
-  SSExchParser in 'Util\SSExchParser.pas';
+  SSExchParser in 'Util\SSExchParser.pas',
+  Settings in 'Settings.pas' {frmSettings};
 
 {$R *.RES}
 
@@ -59,6 +60,7 @@ begin
   Application.Initialize;
   Application.Title := 'Morse Runner';
   Application.CreateForm(TMainForm, MainForm);
+  Application.CreateForm(TfrmSettings, frmSettings);
   Application.Run;
 end.
 
