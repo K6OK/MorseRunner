@@ -246,7 +246,7 @@ type
     procedure spdbtnPauseClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure comboActivitySelect(Sender: TObject); // (K6OK)
-    procedure comboModePopulate;
+    procedure comboModeRefresh;
     procedure SpeedButton12Click(Sender: TObject);
     procedure mnuSettingsClick(Sender: TObject); // (K6OK)
 
@@ -412,6 +412,10 @@ begin
   SimContestComboRefresh;
   assert(MainForm.SimContestCombo.ItemIndex =
     MainForm.SimContestCombo.Items.IndexOf(ActiveContest.Name));
+
+  // populate caller Run Mode (rmPileup, rmSingle) based on Activity
+  comboModeRefresh;
+  assert(MainForm.comboMode.ItemIndex = Ord(Ini.DefaultRunMode));
 
   // enable Exchange debugging either locally or via .INI file
   BDebugExchSettings := CDebugExchSettings or Ini.DebugExchSettings;
@@ -1224,7 +1228,7 @@ end;
 
 procedure TMainForm.SetDefaultRunMode(V : Integer);
 begin
-  if (V >= Ord(rmPileUp)) and (V <= Ord(rmHst)) then
+  if (V >= Ord(rmPileUp)) and (V <= Ord(rmSingle)) then
     DefaultRunMode := TRunMode(V)
   else
     DefaultRunMode := rmPileUp;
@@ -1235,6 +1239,7 @@ begin
   assert(PopupMenu1.Items[3].Tag = Ord(rmHst)+1);
 //  PopupMenu1.Items[Ord(DefaultRunMode)-1].Default := True;
   PopupMenu1.Items[Ord(DefaultRunMode)].Default := True;
+  Self.comboMode.ItemIndex := Ord(DefaultRunMode);
 end;
 
 
@@ -1583,24 +1588,13 @@ var
   I: integer;
 begin
   SimContestCombo.Items.Clear;
-  // if practice or training activity, don't show HST in contest list (K6OK)
-  if comboActivity.ItemIndex < 1 then
-  begin
-    for C in ContestDefinitions do
-    SimContestCombo.Items.Add(C.Name);
-    i := SimContestCombo.Items.IndexOf('HST (High Speed Test)');
-    SimContestCombo.Items.Delete(i);
-  end;
-  if comboActivity.ItemIndex = 1 then
-  begin  // if activity is training
-    SimContestCombo.Items.Add('CQ WPX');
-    SimContestCombo.Items.Add('K1USN Slow Speed Test');
-  end;
-  if comboActivity.ItemIndex = 2 then
-  begin  // if activity is competition
-    SimContestCombo.Items.Add('HST (High Speed Test)');
-    SimContestCombo.Items.Add('CQ WPX');
-  end;
+
+  // populate Contest droplist using contests associated with current activity
+  for C in ContestDefinitions do
+    if ((C.Activities = []) and (CurrentActivity = atPractice)) or
+       (CurrentActivity in C.Activities) then
+      SimContestCombo.Items.Add(C.Name);
+
   SimContestCombo.Sorted:= True;
 
   // Use current contest if it exists within the list; otherwise select the first
@@ -1613,11 +1607,11 @@ begin
   SimContestCombo.ItemIndex := I;
 end;
 
-procedure TMainForm.comboModePopulate;
+procedure TMainForm.comboModeRefresh;
 begin
   comboMode.Items.Clear;
   comboMode.Text := '';
-  if comboActivity.ItemIndex <> 2 then
+  if CurrentActivity <> atCompetition then
   begin
     comboMode.Items.Add('Pile-Up');
     comboMode.Items.Add('Single Calls');
@@ -1625,16 +1619,17 @@ begin
   else
   begin
     comboMode.Items.Add('Pile-Up');
-    comboMode.ItemIndex :=0;
+    Ini.DefaultRunMode := rmPileup;
   end;
+  comboMode.ItemIndex := Ord(Ini.DefaultRunMode);
 end;
 
 
 procedure TMainForm.comboActivitySelect(Sender: TObject);
 begin
-  ExchangeEdit.Text := '';
+  Ini.CurrentActivity := TActivityType(comboActivity.ItemIndex);
   SimContestComboRefresh;
-  comboModePopulate;
+  comboModeRefresh;
 end;
 
 
@@ -1927,7 +1922,7 @@ begin
       Exit;
 
 
-  BCompet := Value in [rmWpx, rmHst];
+  BCompet := (Ini.CurrentActivity = atCompetition) or (Value in [rmWpx, rmHst]);
   RunMode := Value;
 
   //debug switches

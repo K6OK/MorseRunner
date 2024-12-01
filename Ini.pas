@@ -33,6 +33,10 @@ type
   TSimContest = (scWpx, scCwt, scFieldDay, scNaQp, scHst, scCQWW, scArrlDx,
                  scSst, scAllJa, scAcag, scIaruHf, scArrlSS);
 
+  // MRCE supports three Activity types
+  TActivityType = (atPractice=0, atTraining, atCompetition);
+  TActivityTypes = Set of TActivityType;
+
   // TPgmState: Track current state of program as running, paused,
   // running after a pause, or stopped
   // Replace rmStop and FStopPressed with psStop
@@ -70,6 +74,7 @@ type
   TContestDefinition = record
     Name: PChar;    // Contest Name. Used in SimContestCombo dropdown box.
     Key: PChar;     // Identifying key (used in Ini files)
+    Activities: TActivityTypes; // Contest is displayed under one or more activities
     ExchType1: TExchange1Type;
     ExchType2: TExchange2Type;
     ExchCaptions: array[0..1] of String; // exchange field captions
@@ -105,6 +110,7 @@ const
   ContestDefinitions: array[TSimContest] of TContestDefinition = (
     (Name: 'CQ WPX';
      Key: 'CqWpx';
+     Activities: [atPractice, atTraining, atCompetition];
      ExchType1: etRST;
      ExchType2: etSerialNr;
      ExchFieldEditable: True;
@@ -115,6 +121,7 @@ const
 
     (Name: 'CWOPS CWT';
      Key: 'Cwt';
+     Activities: [atPractice];
      ExchType1: etOpName;
      ExchType2: etGenericField;
      ExchCaptions: ('Name', 'Exch');
@@ -127,6 +134,7 @@ const
 
     (Name: 'ARRL Field Day';
      Key: 'ArrlFd';
+     Activities: [atPractice];
      ExchType1: etFdClass;
      ExchType2: etArrlSection;
      ExchFieldEditable: True;
@@ -137,6 +145,7 @@ const
 
     (Name: 'NCJ NAQP';
      Key: 'NAQP';
+     Activities: [atPractice];
      ExchType1: etOpName;
      ExchType2: etNaQpExch2;
      ExchFieldEditable: True;
@@ -147,6 +156,7 @@ const
 
     (Name: 'HST (High Speed Test)';
      Key: 'HST';
+     Activities: [atPractice, atCompetition];
      ExchType1: etRST;
      ExchType2: etSerialNr;
      ExchFieldEditable: False;
@@ -157,6 +167,7 @@ const
 
     (Name: 'CQ WW';
      Key: 'CQWW';
+     Activities: [atPractice];
      ExchType1: etRST;
      ExchType2: etCQZone;
      ExchFieldEditable: True;
@@ -166,6 +177,7 @@ const
 
     (Name: 'ARRL DX';
      Key: 'ArrlDx';
+     Activities: [atPractice];
      ExchType1: etRST;
      ExchType2: etStateProv;  // or etPower
      ExchFieldEditable: True;
@@ -175,6 +187,7 @@ const
 
     (Name: 'K1USN Slow Speed Test';
      Key: 'Sst';
+     Activities: [atPractice, atTraining];
      ExchType1: etOpName;
      ExchType2: etGenericField;  // or etStateProvDx?
      ExchCaptions: ('Name', 'State/Prov/DX');
@@ -187,6 +200,7 @@ const
 
     (Name: 'JARL ALL JA';
      Key: 'AllJa';
+     Activities: [atPractice];
      ExchType1: etRST;
      ExchType2: etJaPref;
      ExchFieldEditable: True;
@@ -196,6 +210,7 @@ const
 
     (Name: 'JARL ACAG';
      Key: 'Acag';
+     Activities: [atPractice];
      ExchType1: etRST;
      ExchType2: etJaCity;
      ExchFieldEditable: True;
@@ -205,6 +220,7 @@ const
 
     (Name: 'IARU HF';
      Key: 'IaruHf';
+     Activities: [atPractice];
      ExchType1: etRST;
      ExchType2: etGenericField;
      ExchCaptions: ('RST', 'Zone/Soc');
@@ -215,6 +231,7 @@ const
 
     (Name: 'ARRL Sweepstakes';
      Key: 'SSCW';
+     Activities: [atPractice];
      ExchType1: etSSNrPrecedence;   // full exchange info is entered via Exch2; or my serial number (sent)
      ExchType2: etSSCheckSection;
      ExchFieldEditable: True;
@@ -286,6 +303,7 @@ var
   DebugCwDecoder: boolean = false;  // stream CW to status bar
   DebugGhosting: boolean = false;   // enable DxStation Ghosting debug
 
+  CurrentActivity: TActivityType = atPractice;
   SimContest: TSimContest = scWpx;
   ActiveContest: PContestDefinition = @ContestDefinitions[scWpx];
   UserExchangeTbl: array[TSimContest] of string;
@@ -367,7 +385,10 @@ begin
   with IniFile do
     try
       // initial Activity is first item in comboActivity dropdown  (K6OK)
-      MainForm.comboActivity.ItemIndex := 0;
+      V := ReadInteger(SEC_TST, 'ActivityType', Ord(CurrentActivity));
+      if (V < 0) or (V > Ord(atCompetition)) then V := 0;
+      CurrentActivity := TActivityType(V);
+      MainForm.comboActivity.ItemIndex := Ord(CurrentActivity);
 
       // initial Contest pick will be CQ WPX (original 1.68 contest).
       // Load SimContest, but do not call SetContest() until UI is initialized.
@@ -379,8 +400,9 @@ begin
       // initial Mode is first item in comboMode dropdown  (K6OK)
       MainForm.comboMode.ItemIndex := 0;
 
+      // initial Run Mode is first item (rmPileup) in comboMode dropdown (K6OK)
       V := ReadInteger(SEC_TST, 'DefaultRunMode', Ord(DefaultRunMode));
-      MainForm.SetDefaultRunMode(Max(Ord(rmPileUp), Min(Ord(rmHst), V)));
+      MainForm.SetDefaultRunMode(Max(Ord(rmPileUp), Min(Ord(rmSingle), V)));
 
       // load contest-specific Exchange Strings from .INI file.
       for SC := Low(ContestDefinitions) to High(ContestDefinitions) do begin
@@ -502,6 +524,7 @@ begin
       WriteBool(SEC_SYS, 'ShowCallsignInfo', MainForm.mnuShowCallsignInfo.Checked);
 
       // write contest-specfic Exchange Strings to .INI file.
+      WriteInteger(SEC_TST, 'ActivityType', Ord(CurrentActivity));
       WriteInteger(SEC_TST, 'SimContest', Ord(SimContest));
       WriteInteger(SEC_TST, 'DefaultRunMode', Ord(DefaultRunMode));
       for SC := Low(ContestDefinitions) to High(ContestDefinitions) do begin
