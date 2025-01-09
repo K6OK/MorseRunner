@@ -344,7 +344,7 @@ end;
 }
 procedure TContest.SerialNrModeChanged;
 begin
-  assert(Ini.pgmState = psRun);    //(K6OK)
+ // assert(Ini.pgmState = psRunning);    //(K6OK)              <-- makes error
 end;
 
 
@@ -812,24 +812,24 @@ begin
   // If duration expired or psStop=True, end the simulation
   //if (BlocksToSeconds(BlockNumber) >= (Duration * 60)) or (Ini.pgmState = psStop) then
 
-  if ((ElapsedTime * 86400) >= (Duration * 60)) or (Ini.pgmState = psStop) then     //(K6OK)
+  if ((ElapsedTime * 86400) >= (Duration * 60)) or (Ini.pgmState = psStopped) then     //(K6OK)
       begin
     if RunMode = rmHst then
       begin
-        Ini.pgmState := psStop;
+        Ini.pgmState := psStopped;
         MainForm.PopupScoreHst;
       end
     else if (SimContest = scWpx) and (RunMode in [rmHst, rmWpx]) and
-      (Ini.pgmState <> psStop)  then
+      (Ini.pgmState <> psStopped)  then
       begin
-        Ini.pgmState := psStop;
-        MainForm.Run(RunMode, psStop);
+        Ini.pgmState := psStopped;
+        MainForm.Run(RunMode, psStopped);
         MainForm.PopupScoreWpx;
       end
     else
       begin
-        Ini.pgmState := psStop;
-        MainForm.Run(RunMode, psStop);
+        Ini.pgmState := psStopped;
+        MainForm.Run(RunMode, psStopped);
       end;
 
 {

@@ -50,15 +50,19 @@ uses
   ExchFields in 'ExchFields.pas',
   SerNRGen in 'SerNRGen.pas',
   Lexer in 'Util\Lexer.pas',
-  ArrlSections in 'Util\ArrlSections.pas',
+  StatesProvs in 'Util\StatesProvs.pas',
   SSExchParser in 'Util\SSExchParser.pas',
-  Settings in 'Settings.pas' {frmSettings};
+  Settings in 'Settings.pas' {frmSettings},
+  SettingsFuncs in 'SettingsFuncs.pas',
+  ArrlSections in 'Util\ArrlSections.pas',
+  Splash in 'Splash.pas' {frmSplash};
 
 {$R *.RES}
 
 begin
   Application.Initialize;
   Application.Title := 'Morse Runner';
+  Application.ShowMainForm := False;
   Application.CreateForm(TMainForm, MainForm);
   Application.CreateForm(TfrmSettings, frmSettings);
   Application.Run;

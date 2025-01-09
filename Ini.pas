@@ -41,7 +41,7 @@ type
   // running after a pause, or stopped
   // Replace rmStop and FStopPressed with psStop
   // Remove rmStop from TRunMode   (K6OK)
-  TPgmState = (psRun, psPause, psRunAfterPause, psStop);
+  TPgmState = (psRunning, psPaused, psRunningAfterPause, psStopped);
 
   TRunMode = (rmPileup, rmSingle, rmWpx, rmHst);
 
@@ -138,7 +138,7 @@ const
      ExchType1: etFdClass;
      ExchType2: etArrlSection;
      ExchFieldEditable: True;
-     ExchDefault: '3A OR';
+     ExchDefault: '3A GH';
      Msg: '''<class> <section>'' (e.g. 3A OR)';
      T:scFieldDay),
      // expecting two strings [Class,Section] (e.g. 3A OR)
@@ -249,8 +249,13 @@ const
 var
   Call: string = 'VE3NEA';
   HamName: string = 'Alex';
+  CQZone: string = '04';
+  ITUZone: string = '04';
   ArrlClass: string = '3A';
   ArrlSection: string = 'GH';
+  StateProv: string = 'ON';
+  JAPref: string = '';
+  JAKuGun: string = '';
   Wpm: integer = 25;
   WpmStepRate: integer = 2;
   MaxRxWpm: integer = 0;
@@ -284,11 +289,13 @@ var
   GetWpmUsesGaussian: boolean = false;
   ShowCheckSection: integer=50;
   ShowExchangeSummary: integer = 1; // 0=Off, 1=Above Field, 2=Status Bar
+  AudioDevice: string = '';
+  MonLevel: integer;
 
   Duration: integer = 30;
   RunMode: TRunMode = rmPileUp;      // was rmStop  (K6OK)
   DefaultRunMode: TRunMode = rmPileUp;
-  pgmState: TPgmState = psStop;      // (K6OK)
+  pgmState: TPgmState = psStopped;      // (K6OK)
   HiScore: integer;
   CompDuration: integer = 60;
 
@@ -413,7 +420,10 @@ begin
       end;
 
       ArrlClass := ReadString(SEC_STN, 'ArrlClass', '3A');
-      ArrlSection := ReadString(SEC_STN, 'ArrlSection', 'ON');
+      ArrlSection := ReadString(SEC_STN, 'ArrlSection', 'GH');
+      StateProv := ReadString(SEC_STN, 'StateProv', 'ON');
+      CQZone := ReadString(SEC_STN, 'CQZone', '4');
+      ITUZone := ReadString(SEC_STN, 'ITUZone', '4');
 
       // load station settings...
       // Calls to SetMyCall, SetPitch, SetBw, etc., moved to MainForm.SetContest
@@ -421,7 +431,7 @@ begin
       MainForm.cmboCWPitch.ItemIndex := ReadInteger(SEC_STN, 'Pitch', 3);
       MainForm.cmboRXBW.ItemIndex := ReadInteger(SEC_STN, 'BandWidth', 9);
 
-      HamName := ReadString(SEC_STN, 'Name', '');
+      HamName := ReadString(SEC_STN, 'Name', 'Alex');
       DeleteKey(SEC_STN, 'cwopsnum');  // obsolete at v1.83
 
       MainForm.UpdCWMaxRxSpeed(ReadInteger(SEC_STN, 'CWMaxRxSpeed', MaxRxWpm));
@@ -445,8 +455,8 @@ begin
       ReadSerialNRSetting(IniFile, snMidContest, SerialNrMidContestDef);
       ReadSerialNRSetting(IniFile, snEndContest, SerialNrEndContestDef);
       ReadSerialNRSetting(IniFile, snCustomRange, SerialNrCustomRangeDef);
-      frmSettings.UpdSerialNRCustomRange(SerialNRSettings[snCustomRange].RangeStr);
-      frmSettings.UpdSerialNR(ReadInteger(SEC_STN, 'SerialNR', Ord(SerialNR)));
+      //MainForm.UpdSerialNRCustomRange(SerialNRSettings[snCustomRange].RangeStr);
+      //MainForm.UpdSerialNR(ReadInteger(SEC_STN, 'SerialNR', Ord(SerialNR)));
 
       Wpm := ReadInteger(SEC_STN, 'Wpm', Wpm);
       Qsk := ReadBool(SEC_STN, 'Qsk', Qsk);
@@ -537,6 +547,8 @@ begin
       WriteString(SEC_STN, 'ArrlSection', ArrlSection);
 
       WriteString(SEC_STN, 'Call', Call);
+      WriteString(SEC_STN, 'CQZone', CQZone);
+      WriteString(SEC_STN, 'ITUZone', ITUZone);
       WriteInteger(SEC_STN, 'Pitch', MainForm.cmboCWPitch.ItemIndex);
       WriteInteger(SEC_STN, 'BandWidth', MainForm.cmboRXBW.ItemIndex);
       WriteInteger(SEC_STN, 'Wpm', Wpm);
@@ -550,7 +562,14 @@ begin
 
         WriteString(SEC_STN, 'Name', HamName);
         WriteString(SEC_STN, 'cwopsnum', CWOPSNum);
+
+        Update: HamName now captured on Settings form            (K6OK)
+        to be used as default name for NAQP, HST, etc
+        To do: allow each contest to override if different names used
       }
+      WriteString(SEC_STN, 'Name', HamName);
+      WriteString(SEC_STN, 'StateProv', StateProv);
+
       WriteInteger(SEC_STN, 'CWMaxRxSpeed', MaxRxWpm);
       WriteInteger(SEC_STN, 'CWMinRxSpeed', MinRxWpm);
       WriteInteger(SEC_STN, 'SerialNR', Ord(SerialNR));

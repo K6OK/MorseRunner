@@ -61,11 +61,6 @@ type
     Exit1: TMenuItem;
     Panel6: TPanel;
     RichEdit1: TRichEdit;
-    Label12: TLabel;
-    Label13: TLabel;
-    Label14: TLabel;
-    Label15: TLabel;
-    Shape1: TShape;
     PopupMenu1: TPopupMenu;
     PileupMNU: TMenuItem;
     SingleCallsMNU: TMenuItem;
@@ -82,7 +77,6 @@ type
     ViewScoreBoardMNU: TMenuItem;
     ViewScoreTable1: TMenuItem;
     Panel7: TPanel;
-    Label16: TLabel;
     AlWavFile1: TAlWavFile;
     Panel9: TPanel;
     GroupBox3: TGroupBox;
@@ -119,10 +113,6 @@ type
     sbar: TPanel;
     mnuShowCallsignInfo: TMenuItem;
     NRQM: TMenuItem;
-    Label19: TLabel;
-    Label20: TLabel;
-    Label21: TLabel;
-    Label22: TLabel;
     Panel11: TPanel;
     ListView1: TListView;
     Panel12: TPanel;
@@ -148,7 +138,6 @@ type
     SpeedButton2: TSpeedButton;
     SpeedButton3: TSpeedButton;
     SpeedButton12: TSpeedButton;
-    labelStatus: TLabel;
     Label23: TLabel;
     comboActivity: TComboBox;
     Label31: TLabel;
@@ -168,6 +157,7 @@ type
     mnuSettings: TMenuItem;
     Timer1: TTimer;
     N3: TMenuItem;
+    labelStatus: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure AlSoundOut1BufAvailable(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -249,6 +239,7 @@ type
     procedure comboModeRefresh;
     procedure SpeedButton12Click(Sender: TObject);
     procedure mnuSettingsClick(Sender: TObject); // (K6OK)
+    procedure SettingsReconstructor;
 
   private
     MustAdvance: boolean;       // Controls when Exchange fields advance
@@ -308,6 +299,7 @@ type
     procedure UpdCWMaxRxSpeed(Maxspd: integer);
     procedure ClientHTTP1Redirect(Sender: TObject; var dest: string;
       var NumRedirect: Integer; var Handled: Boolean; var VMethod: string);
+    
   end;
 
 function ToStr(const val : TExchange1Type): string; overload;
@@ -341,7 +333,8 @@ uses
   IARUHF, ARRLSS,
   MorseKey, FarnsKeyer, CallLst,
   SysUtils, ShellApi, Crc32, Idhttp, Math, IniFiles,
-  Dialogs, System.UITypes, TypInfo, ScoreDlg, Log, PerlRegEx, StrUtils;
+  Dialogs, System.UITypes, TypInfo, ScoreDlg, Log, PerlRegEx, StrUtils,
+  SettingsFuncs, Splash;
 
 {$R *.DFM}
 
@@ -364,23 +357,32 @@ begin
 end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
+var
+  frmSplash: TfrmSplash;
 begin
 {$ifdef DEBUG}
   // detect/report memory leaks while in debug mode
   System.ReportMemoryLeaksOnShutdown := True;
 {$endif}
+
+  // Splash screen
+  frmSplash := TfrmSplash.Create(Application);
+  frmSplash.DoSplash;
+  frmSplash.TimerSplash.Enabled := True;
+  // end splash
+
   Randomize;
 
   Panel2.DoubleBuffered := True;
   RichEdit1.Align := alClient;
   RichEdit1.Font.Name:= 'Consolas';
   RichEdit1.Font.Size:= 11;
-  Self.Caption:= 'Morse Runner - Community Edition';
-  Label12.Caption:= format('Morse Runner %s ', [sVersion]);
-  Label13.Caption:= Label12.Caption;
-  Label14.Caption:= Label12.Caption;
-  ListView2.Visible:= False;
+  //Label12.Caption:= format('Morse Runner %s ', [sVersion]);
+  //Label13.Caption:= Label12.Caption;
+  //Label14.Caption:= Label12.Caption;
   ListView2.Clear;
+  ListView2.Visible:= True;
+
 
   UserCallsignDirty := False;
   UserExchangeDirty := False;
@@ -428,6 +430,8 @@ begin
 
   // start the TTimer for timekeeping (K6OK)
   Timer1.Enabled := True;
+
+
 end;
 
 
@@ -902,7 +906,7 @@ begin
     begin
       // exit CW Speed Control
       spinCWSpeedExit(ActiveControl);
-      if Ini.pgmState = psStop then
+      if Ini.pgmState = psStopped then
         Exit;
     end;
   MustAdvance := false;
@@ -939,7 +943,7 @@ begin
     SendMsg(msgCq);
     // special case - Cursor is in either CW Speed or Activity Spin Control
     // when Enter key is pushed. Move cursor to the next QSO Exchange field.
-    if (Ini.pgmState = psRun) and
+    if (Ini.pgmState = psRunning) and
           ((ActiveControl = spinCWSpeed) or (ActiveControl = SpinEdit3)) then
       MustAdvance := true;
     Exit;
@@ -1019,7 +1023,6 @@ begin
   else if RunMode <> rmHst then SetBw(cmboRXBW.ItemIndex+1);
   Handled := true;  // set Handled to prevent being called 3 times
 end;
-
 
 procedure TMainForm.IncSpeed;
 begin
@@ -1221,8 +1224,8 @@ procedure TMainForm.UpdateTitleBar;
 begin
   if (SimContest = scHst) and not HamName.IsEmpty then  // for HST, add operator name
     Caption := Format('Morse Runner - Community Edition:  %s', [HamName])
-  else // Default is: Morse Runner - Community Edition
-    Caption := 'Morse Runner - Community Edition';
+  else // Default is: Morse Runner - Community Edition with version
+    Caption := Format('Morse Runner - Community Edition: version %s', [sVersion]);
 end;
 
 
@@ -1774,18 +1777,11 @@ end;
 
 
 procedure TMainForm.About1Click(Sender: TObject);
-const
-    Msg= //'Morse Runner - Community Edition'#13 +
-        'CW CONTEST SIMULATOR'#13#13 +
-        'Version %s'#13#13 +
-        'Copyright ©2004-2016 Alex Shovkoplyas, VE3NEA'#13 +
-        'Copyright ©2022-2024 Morse Runner Community Edition Contributors'#13#13 +
-        'https://www.github.com/w7sst/MorseRunner/#readme'#13 +
-        'https://groups.io/g/MorseRunnerCE';
 begin
-    Application.MessageBox(PChar(Format(Msg, [sVersion])),
-      'About Morse Runner - Community Edition',
-      MB_OK);
+  frmSplash := TfrmSplash.Create(Application);
+  frmSplash.DoSplash;
+  frmSplash.btnSplashClose.Visible := True;
+  frmSplash.TimerSplash.Enabled := False;
 end;
 
 
@@ -1862,10 +1858,10 @@ begin
     Exit;						            // re-clicking run once run is engaged (K6OK)
 }
 
-  BRun := valuState = psRun;
-  BStop := valuState = psStop;
-  BPause := valuState = psPause;
-  BResume := valuState = psRunAfterPause;
+  BRun := valuState = psRunning;
+  BStop := valuState = psStopped;
+  BPause := valuState = psPaused;
+  BResume := valuState = psRunningAfterPause;
 
   if BRun and not BResume then        //Run a new session
   begin
@@ -2073,17 +2069,17 @@ end;
 // Event handlers for Run-Pause-Stop buttons --------------- (K6OK)
 procedure TMainForm.spdbtnRunClick(Sender: TObject);
 begin
-  if Ini.pgmState = psStop then    // Run after Stop is always a full reset
+  if Ini.pgmState = psStopped then    // Run after Stop is always a full reset
   begin
     Panel2.Caption := '00:00:00';
     StartTime := Now;
-    Ini.pgmState := psRun;
+    Ini.pgmState := psRunning;
     PausedTime := 0;
   end;
-  if pgmState = psPause then    // Run after Pause is a resume
+  if pgmState = psPaused then    // Run after Pause is a resume
   begin
     PausedTime := (Now - PauseStartTime) + PausedTime;
-    pgmState := psRunAfterPause;
+    pgmState := psRunningAfterPause;
   end;
   Run(DefaultRunMode, Ini.pgmState);
   labelStatus.Caption := 'Status: Running';
@@ -2092,7 +2088,7 @@ end;
 
 procedure TMainForm.spdbtnPauseClick(Sender: TObject);
 begin
-   Ini.pgmState := psPause;
+   Ini.pgmState := psPaused;
    Run(DefaultRunMode, Ini.pgmState);
    PauseStartTime := Now;
    labelStatus.Caption := 'Status: Paused';
@@ -2101,7 +2097,7 @@ end;
 
 procedure TMainForm.spdbtnStopClick(Sender: TObject);
 begin
-   Ini.pgmState := psStop;
+   Ini.pgmState := psStopped;
    Run(DefaultRunMode, Ini.pgmState);
    StopTime := Now;
    labelStatus.Caption := 'Status: Stopped';
@@ -2131,7 +2127,7 @@ end;
 // Updates the stopwatch on Panel 2
 procedure TMainForm.Timer1Timer(Sender: TObject);
 begin
-  if Ini.pgmState in [psRun, psRunAfterPause] then
+  if Ini.pgmState in [psRunning, psRunningAfterPause] then
   begin
     ElapsedTime := Now - StartTime - PausedTime;
     Panel2.Caption := FormatDateTime('hh:mm:ss', ElapsedTime);
@@ -2270,7 +2266,19 @@ end;
 
 procedure TMainForm.mnuSettingsClick(Sender: TObject);
 begin
-  frmSettings.Show;
+  if ini.pgmState = psStopped then
+  begin
+    frmSettings.Show;
+    frmSettings.pageSettings.ActivePageIndex := 0;
+    SettgsFuncs.DisableMainFormStngs(True);  //disable mainform settings controls
+  end
+  else ShowMessage('Please end your session before changing settings.');
+end;
+
+// if user calls Settings again after it's been Released, rebuild it
+procedure TMainForm.SettingsReconstructor;
+begin
+  frmSettings := TfrmSettings.Create(Application);
 end;
 
 procedure TMainForm.mnuShowCallsignInfoClick(Sender: TObject);
@@ -2512,7 +2520,7 @@ procedure TMainForm.File1Click(Sender: TObject);
 var
   Stp: boolean;
 begin
-  if Ini.pgmState = psStop then
+  if Ini.pgmState = psStopped then
     Stp := True else Stp := False;
   AudioRecordingEnabled1.Enabled := Stp;
   PlayRecordedAudio1.Enabled := Stp and FileExists(ChangeFileExt(ParamStr(0), '.wav'));
@@ -2622,8 +2630,10 @@ end;
 
 procedure TMainForm.StopMNUClick(Sender: TObject);
 begin
-  Ini.pgmState := psStop;
+  Ini.pgmState := psStopped;
 end;
+
+
 
 end.
 

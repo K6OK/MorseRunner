@@ -79,7 +79,7 @@ end;
 }
 procedure TCqWpx.SerialNrModeChanged;
 begin
-  assert(Ini.pgmState = psRun);  //(K6OK)
+  assert(Ini.pgmState = psRunning);  //(K6OK)
   InitSerialNRGen;
 end;
 
