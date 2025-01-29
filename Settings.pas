@@ -5,8 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ExtCtrls,
-  Vcl.WinXCtrls, Vcl.Samples.Spin, VolmSldr, Vcl.Grids,
-  Contest,Ini;
+  Vcl.WinXCtrls, Vcl.Samples.Spin, VolmSldr, Vcl.Grids, Vcl.Buttons;
 
 type
   TfrmSettings = class(TForm)
@@ -88,7 +87,11 @@ type
     radioSN01: TRadioButton;
     radioSN02: TRadioButton;
     radioSN03: TRadioButton;
-    procedure FormCreate(Sender: TObject);
+    spdbtnHistGridRowUp: TSpeedButton;
+    spdbtnHistGridRowDown: TSpeedButton;
+    lblHistSelRow: TLabel;
+    btnHelpHistory: TButton;
+    procedure LoadtheForm(Sender: TObject);
     procedure radioSN03Click(Sender: TObject);
     procedure btnSettingsSaveClick(Sender: TObject);
     procedure btnSettingsCancelClick(Sender: TObject);
@@ -100,6 +103,11 @@ type
     procedure trkBarFasterSpeedTracking(Sender: TObject);
     procedure trkBarSlowerSpeedTracking(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure spdbtnHistGridRowDownClick(Sender: TObject);
+    procedure spdbtnHistGridRowUpClick(Sender: TObject);
+    procedure btnChangeHistClick(Sender: TObject);
+    procedure btnHelpHistoryClick(Sender: TObject);
+
 
   private
     { Private declarations }
@@ -115,22 +123,25 @@ implementation
 
 {$R *.dfm}
 
-uses Main, SettingsFuncs, ARRLSections, StatesProvs;
+uses Main, SettingsFuncs, Contest, Ini, ARRLSections,
+     StatesProvs, History, HistoryHelp;
 
 
 
-procedure TfrmSettings.FormCreate(Sender: TObject);
+procedure TfrmSettings.LoadtheForm(Sender: TObject);
 begin
   SettgsFuncs.LoadSettingsFromIni;
+  SettgsFuncs.LoadAudioComboBox;
+  frmSettings.pageSettings.ActivePageIndex := 0;
+  frmSettings.ShowModal;
 end;
 
 //----- If any fields are changed on Settings form, store all settings ---------
 //----- in TSettingsTentative record pending Save or Cancel --------------------
 procedure TfrmSettings.SettingsFormDirty(Sender: TObject);
 begin
-  SettgsFuncs.WriteDirtySettingsToRecord;
+  SettgsFuncs.WriteDirtySettingsToRecord(Sender);
 end;
-
 
 //----- SAVE button click, copy all of the settings from the SettgsTentv
 //----- record to the Ini variables                                -------------
@@ -165,15 +176,18 @@ begin
   SettgsFuncs.UpdSerialNR(V);
   frmSettings.Visible := False;
   SettgsFuncs.UpdateMainFormControlsAfterSave;
-  SettgsFuncs.DisableMainFormStngs(False);
+  Close;
+  Release;
 end;
 
 //----- CANCEL, discard changes and read from Ini file -------------------------
+
 procedure TfrmSettings.btnSettingsCancelClick(Sender: TObject);
 begin
   frmSettings.Visible := False;
   SettgsFuncs.LoadSettingsFromIni;
-  SettgsFuncs.DisableMainFormStngs(False);
+  Close;
+  Release;
 end;
 
 //----- FORM CLOSE (border icon clicked), treated same as Cancel ---------------
@@ -186,13 +200,13 @@ end;
 procedure TfrmSettings.trkBarCWPitchTracking(Sender: TObject);
 begin
   lblCWPitchHzNo.Caption := inttostr(300 + 50*trkBarCWPitch.Position);
-  SettgsFuncs.WriteDirtySettingsToRecord;
+  SettgsFuncs.WriteDirtySettingsToRecord(Sender);
 end;
 
 procedure TfrmSettings.trkBarRxBwTracking(Sender: TObject);
 begin
   lblRxBwHzNo.Caption := inttostr(100 + 50*trkBarRxBw.Position);
-  SettgsFuncs.WriteDirtySettingsToRecord;
+  SettgsFuncs.WriteDirtySettingsToRecord(Sender);
 end;
 
 procedure TfrmSettings.trkBarMonLevelTracking(Sender: TObject);  // 3dB steps
@@ -202,7 +216,7 @@ begin
   pos := (trkBarMonLevel.Position*3)-60;
   if (pos>20) then pos := 20;
   lblMonLevelNo.Caption := InttoStr(pos);
-  SettgsFuncs.WriteDirtySettingsToRecord;
+  SettgsFuncs.WriteDirtySettingsToRecord(Sender);
 end;
 
 procedure TfrmSettings.trkBarCWSpeedTracking(Sender: TObject);
@@ -213,7 +227,7 @@ begin
   lblMySpeed.Caption := IntToStr(myspd);
   lblFasterSpeed.Caption := inttostr(myspd + trkBarFasterSpeed.Position);
   lblSlowerSpeed.Caption := inttostr(myspd - trkBarFasterSpeed.Position);
-  SettgsFuncs.WriteDirtySettingsToRecord;
+  SettgsFuncs.WriteDirtySettingsToRecord(Sender);
 end;
 
 procedure TfrmSettings.trkBarFasterSpeedTracking(Sender: TObject);
@@ -224,7 +238,7 @@ begin
   lblFastestCaller.Caption := 'Fastest Caller (+'  +
     inttostr(trkBarFasterSpeed.Position) + ' )';
   lblFasterSpeed.Caption := inttostr(hispd);
-  SettgsFuncs.WriteDirtySettingsToRecord;
+  SettgsFuncs.WriteDirtySettingsToRecord(Sender);
 end;
 
 procedure TfrmSettings.trkBarSlowerSpeedTracking(Sender: TObject);
@@ -238,13 +252,46 @@ begin
   lblSlowestCaller.Caption := 'Slowest Caller (-'  +
     inttostr(lomin) + ' )';
   lblSlowerSpeed.Caption := inttostr(lospd);
-  SettgsFuncs.WriteDirtySettingsToRecord;
+  SettgsFuncs.WriteDirtySettingsToRecord(Sender);
 end;
 
 procedure TfrmSettings.radioSN03Click(Sender: TObject);
 begin
   SettgsFuncs.SerialNRCustomRangeClick;
-  SettgsFuncs.WriteDirtySettingsToRecord;
+  SettgsFuncs.WriteDirtySettingsToRecord(Sender);
+end;
+
+//History string grid row cursor up/down
+procedure TfrmSettings.spdbtnHistGridRowDownClick(Sender: TObject);
+var
+  currow : integer;
+begin
+  currow := StringGrid1.Row;
+  if (currow < StringGrid1.RowCount - 2) then
+    StringGrid1.Row := currow + 1 else
+    StringGrid1.Row := StringGrid1.RowCount - 1;
+end;
+
+procedure TfrmSettings.spdbtnHistGridRowUpClick(Sender: TObject);
+var
+  currow : integer;
+begin
+  currow := StringGrid1.Row;
+  if (currow > 2) then StringGrid1.Row := StringGrid1.Row -1 else
+    StringGrid1.Row := 1;
+end;
+
+//History: select a replacement file
+procedure TfrmSettings.btnChangeHistClick(Sender: TObject);
+begin
+  HistoryFuncs.ReplaceHistoryFile(StringGrid1.Cells[0, StringGrid1.Row]);
+end;
+
+//History: show Help file
+procedure TfrmSettings.btnHelpHistoryClick(Sender: TObject);
+begin
+  frmHistoryHelp := TfrmHistoryHelp.Create(self);
+  frmHistoryHelp.ShowModal;
 end;
 
 end.

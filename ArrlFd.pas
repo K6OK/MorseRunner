@@ -87,7 +87,7 @@ implementation
 
 uses
   SysUtils, Classes,
-  Ini,
+  Ini, History,
   System.Generics.Collections,
 {$ifdef DISTRIBUTION_REPORT}
   Dialogs,      // for ShowMessage
@@ -220,7 +220,8 @@ begin
   try
     FdCallList.Clear;
 
-    slst.LoadFromFile(ParamStr(1) + 'FDGOTA.TXT');
+    //slst.LoadFromFile(ParamStr(1) + 'FDGOTA.TXT');
+    slst.LoadFromFile(ExtractFilePath(ParamStr(0)) + HistFileNames[scFieldDay]);
 
     // Pass 1 - find and process all club stations (class A, C or F).
     //        - deffer all home/portable stations w/ a club name to Pass 2.

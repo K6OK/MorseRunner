@@ -45,7 +45,7 @@ type
 implementation
 
 uses
-  SysUtils, Classes;
+  SysUtils, Classes, History, Ini;
 
 function TACAG.LoadCallHistory(const AUserCallsign : string) : boolean;
 const
@@ -69,7 +69,8 @@ begin
   try
     CallList.Clear;
 
-    slst.LoadFromFile(ParamStr(1) + 'JARL_ACAG.TXT');
+    //slst.LoadFromFile(ParamStr(1) + 'JARL_ACAG.TXT');
+    slst.LoadFromFile(ExtractFilePath(ParamStr(0)) + HistFileNames[scAcag]);
 
     for i:= 0 to slst.Count-1 do begin
       if (slst.Strings[i].StartsWith('!!Order!!')) then continue;

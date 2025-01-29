@@ -12,14 +12,13 @@ object frmSettings: TfrmSettings
   Font.Style = []
   Position = poScreenCenter
   OnClose = FormClose
-  OnCreate = FormCreate
   TextHeight = 15
   object pageSettings: TPageControl
     Left = 0
     Top = 0
     Width = 628
     Height = 392
-    ActivePage = TabSheet2
+    ActivePage = TabSheet3
     Align = alClient
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -194,6 +193,7 @@ object frmSettings: TfrmSettings
           Width = 215
           Height = 25
           TabOrder = 0
+          Text = 'Default'
           OnChange = SettingsFormDirty
         end
         object trkBarMonLevel: TTrackBar
@@ -740,13 +740,57 @@ object frmSettings: TfrmSettings
     object TabSheet3: TTabSheet
       Caption = 'History Files'
       ImageIndex = 3
+      object spdbtnHistGridRowUp: TSpeedButton
+        Left = 508
+        Top = 30
+        Width = 50
+        Height = 22
+        Caption = '5'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -27
+        Font.Name = 'Webdings'
+        Font.Style = []
+        ParentFont = False
+        OnClick = spdbtnHistGridRowUpClick
+      end
+      object spdbtnHistGridRowDown: TSpeedButton
+        Left = 563
+        Top = 30
+        Width = 50
+        Height = 22
+        Caption = '6'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -27
+        Font.Name = 'Webdings'
+        Font.Style = []
+        ParentFont = False
+        OnClick = spdbtnHistGridRowDownClick
+      end
+      object lblHistSelRow: TLabel
+        Left = 531
+        Top = 58
+        Width = 56
+        Height = 13
+        Alignment = taCenter
+        Caption = 'Select Row'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Segoe UI'
+        Font.Style = []
+        ParentFont = False
+        WordWrap = True
+      end
       object StringGrid1: TStringGrid
-        Left = 18
-        Top = 25
-        Width = 400
-        Height = 305
+        Left = 3
+        Top = 11
+        Width = 494
+        Height = 334
         BevelEdges = []
-        ColCount = 2
+        ColCount = 3
+        DefaultRowHeight = 20
         RowCount = 13
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -759,12 +803,22 @@ object frmSettings: TfrmSettings
         TabOrder = 0
       end
       object btnChangeHist: TButton
-        Left = 472
-        Top = 80
-        Width = 91
+        Left = 508
+        Top = 112
+        Width = 105
         Height = 25
-        Caption = 'Change File'
+        Caption = 'Select New File'
         TabOrder = 1
+        OnClick = btnChangeHistClick
+      end
+      object btnHelpHistory: TButton
+        Left = 508
+        Top = 152
+        Width = 105
+        Height = 25
+        Caption = 'Help'
+        TabOrder = 2
+        OnClick = btnHelpHistoryClick
       end
     end
   end

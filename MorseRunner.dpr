@@ -55,7 +55,9 @@ uses
   Settings in 'Settings.pas' {frmSettings},
   SettingsFuncs in 'SettingsFuncs.pas',
   ArrlSections in 'Util\ArrlSections.pas',
-  Splash in 'Splash.pas' {frmSplash};
+  Splash in 'Splash.pas' {frmSplash},
+  History in 'History.pas',
+  HistoryHelp in 'HistoryHelp.pas' {frmHistoryHelp};
 
 {$R *.RES}
 
@@ -64,7 +66,6 @@ begin
   Application.Title := 'Morse Runner';
   Application.ShowMainForm := False;
   Application.CreateForm(TMainForm, MainForm);
-  Application.CreateForm(TfrmSettings, frmSettings);
   Application.Run;
 end.
 

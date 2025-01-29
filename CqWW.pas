@@ -48,7 +48,7 @@ end;
 implementation
 
 uses
-  SysUtils, Classes, DXCC;
+  SysUtils, Classes, DXCC, History, Ini;
 
 function TCqWw.LoadCallHistory(const AUserCallsign : string) : boolean;
 const
@@ -73,7 +73,8 @@ begin
   try
     CqWwCallList.Clear;
 
-    slst.LoadFromFile(ParamStr(1) + 'CQWWCW.TXT');
+    //slst.LoadFromFile(ParamStr(1) + 'CQWWCW.TXT');
+    slst.LoadFromFile(HistFileNames[scCQWW]);
 
     for i:= 0 to slst.Count-1 do begin
       if (slst.Strings[i].StartsWith('!!Order!!')) then continue;

@@ -2227,6 +2227,7 @@ object frmSplash: TfrmSplash
       Caption = 'Close'
       TabOrder = 0
       Visible = False
+      OnClick = btnSplashCloseClick
     end
   end
   object TimerSplash: TTimer

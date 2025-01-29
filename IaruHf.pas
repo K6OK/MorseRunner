@@ -49,7 +49,7 @@ type
 implementation
 
 uses
-  SysUtils, PerlRegEx, DXCC, CallLst,
+  SysUtils, PerlRegEx, DXCC, CallLst, History,
   Ini, Main;
 
 
@@ -105,7 +105,8 @@ begin
   try
     IaruHfCallList.Clear;
 
-    slst.LoadFromFile(ParamStr(1) + 'IARU_HF.txt');
+    //slst.LoadFromFile(ParamStr(1) + 'IARU_HF.txt');
+    slst.LoadFromFile(ExtractFilePath(ParamStr(0)) + HistFileNames[scIaruHf]);
 
     for i:= 0 to slst.Count-1 do begin
       tl.DelimitedText := slst.Strings[i];

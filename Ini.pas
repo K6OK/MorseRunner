@@ -17,6 +17,7 @@ const
   SEC_TST = 'Contest';
   SEC_SYS = 'System';
   SEC_SET = 'Settings';
+  SEC_HSY = 'HistoryFiles';
   SEC_DBG = 'Debug';
 
   DEFAULTBUFCOUNT = 8;
@@ -333,7 +334,7 @@ uses
   Math,           // for Min, Max
   SysUtils,       // for Format(),
   TypInfo,        // for typeInfo
-  Main, Contest, Settings;
+  Main, Contest, Settings, History;
 
 
 function ToStr(const val : TRunMode) : string; overload;
@@ -509,6 +510,13 @@ begin
       ShowCheckSection := ReadInteger(SEC_SET, 'ShowCheckSection', ShowCheckSection);
       ShowExchangeSummary := ReadInteger(SEC_SET, 'ShowExchangeSummary', ShowExchangeSummary);
 
+      // [History Files]
+      for SC := Low(TSimContest) to High(TSimContest) do
+      begin
+        HistFileNames[SC] := ReadString(SEC_HSY, GetEnumName(TypeInfo(TSimContest),
+            Ord(SC)), HistFileDeflt[SC]);
+      end;
+
       // [Debug]
       DebugExchSettings := ReadBool(SEC_DBG, 'DebugExchSettings', DebugExchSettings);
       DebugCwDecoder := ReadBool(SEC_DBG, 'DebugCwDecoder', DebugCwDecoder);
@@ -523,7 +531,7 @@ end;
 
 procedure ToIni;
 var
-  V: integer;
+  V: integer; //i: integer;
   SC: TSimContest;
   KeyName: String;
   IniPath: String; wholep: string;
@@ -604,6 +612,14 @@ begin
       WriteInteger(SEC_SET, 'RitStepIncr', RitStepIncr);
       WriteInteger(SEC_SET, 'ShowCheckSection', ShowCheckSection);
       WriteInteger(SEC_SET, 'ShowExchangeSummary', ShowExchangeSummary);
+
+      // [History Files]
+      for SC := Low(TSimContest) to High(TSimContest) do
+      begin
+        WriteString(SEC_HSY, GetEnumName(TypeInfo(TSimContest),
+          Ord(SC)), HistFileNames[SC]);
+      end;
+
 
       // Main form size and position             (K6OK)
       WriteInteger(SEC_SYS,'fmTop',MainForm.Top);

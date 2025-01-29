@@ -73,7 +73,7 @@ uses
   PerlRegEx,      // for regular expression support
   Ini,            // for ActiveContest
   ArrlSections,   // SectionsTbl
-  DXCC;
+  DXCC, History;
 
 function TSweepstakes.LoadCallHistory(const AUserCallsign : string) : boolean;
 const
@@ -97,7 +97,8 @@ begin
   rec := nil;
 
   try
-    slst.LoadFromFile(ParamStr(1) + 'SSCW.TXT');
+    //slst.LoadFromFile(ParamStr(1) + 'SSCW.TXT');
+    slst.LoadFromFile(ExtractFilePath(ParamStr(0)) + HistFileNames[scArrlSS]);
 
     for i:= 0 to slst.Count-1 do begin
       tl.DelimitedText := slst.Strings[i];

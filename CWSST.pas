@@ -46,7 +46,7 @@ type
 implementation
 
 uses
-    SysUtils, StrUtils, DXCC;
+    SysUtils, StrUtils, DXCC, Ini, History;
 
 function TCWSST.LoadCallHistory(const AUserCallsign : string) : boolean;
 const
@@ -72,7 +72,9 @@ begin
     try
         CWSSTList.Clear;
 
-        slst.LoadFromFile(ParamStr(1) + 'K1USNSST.txt');
+        //slst.LoadFromFile(ParamStr(1) + 'K1USNSST.txt');
+        slst.LoadFromFile(ExtractFilePath(ParamStr(0)) + HistFileNames[scSst]);
+
         slst.Sort;
 
         for i:= 0 to slst.Count-1 do begin

@@ -239,7 +239,6 @@ type
     procedure comboModeRefresh;
     procedure SpeedButton12Click(Sender: TObject);
     procedure mnuSettingsClick(Sender: TObject); // (K6OK)
-    procedure SettingsReconstructor;
 
   private
     MustAdvance: boolean;       // Controls when Exchange fields advance
@@ -332,7 +331,7 @@ uses
   DXCC, ARRLFD, NAQP, CWOPS, CQWW, CQWPX, ARRLDX, CWSST, ALLJA, ACAG,
   IARUHF, ARRLSS,
   MorseKey, FarnsKeyer, CallLst,
-  SysUtils, ShellApi, Crc32, Idhttp, Math, IniFiles,
+  SysUtils, ShellApi, Crc32, Idhttp, Math, IniFiles, History,
   Dialogs, System.UITypes, TypInfo, ScoreDlg, Log, PerlRegEx, StrUtils,
   SettingsFuncs, Splash;
 
@@ -2268,18 +2267,13 @@ procedure TMainForm.mnuSettingsClick(Sender: TObject);
 begin
   if ini.pgmState = psStopped then
   begin
-    frmSettings.Show;
-    frmSettings.pageSettings.ActivePageIndex := 0;
-    SettgsFuncs.DisableMainFormStngs(True);  //disable mainform settings controls
+     frmSettings := TfrmSettings.Create(Application);
+     frmSettings.LoadtheForm(Sender);
   end
-  else ShowMessage('Please end your session before changing settings.');
-end;
+  else
+     ShowMessage('Please end your session before changing settings.');
+  end;
 
-// if user calls Settings again after it's been Released, rebuild it
-procedure TMainForm.SettingsReconstructor;
-begin
-  frmSettings := TfrmSettings.Create(Application);
-end;
 
 procedure TMainForm.mnuShowCallsignInfoClick(Sender: TObject);
 begin

@@ -45,7 +45,7 @@ type
 implementation
 
 uses
-  SysUtils, Classes;
+  SysUtils, Classes, History, Ini;
 
 function TALLJA.LoadCallHistory(const AUserCallsign : string) : boolean;
 const
@@ -69,7 +69,8 @@ begin
   try
     CallList.Clear;
 
-    slst.LoadFromFile(ParamStr(1) + 'JARL_ALLJA.TXT');
+    //slst.LoadFromFile(ParamStr(1) + 'JARL_ALLJA.TXT');
+    slst.LoadFromFile(ExtractFilePath(ParamStr(0)) + HistFileNames[scAllJa]);
 
     for i:= 0 to slst.Count-1 do begin
       if (slst.Strings[i].StartsWith('!!Order!!')) then continue;

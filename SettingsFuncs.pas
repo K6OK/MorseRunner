@@ -3,17 +3,18 @@ unit SettingsFuncs;
 interface
 
 uses inifiles, System.SysUtils, System.Classes, System.StrUtils,
-     System.IOUtils, System.UITypes, Dialogs, Vcl.WinXCtrls,
-     Ini, Settings, Contest, Main, ARRLSections, StatesProvs;
+     System.IOUtils, System.UITypes, Dialogs, Vcl.WinXCtrls, Vcl.Grids,
+     Ini, Settings, Contest, Main, ARRLSections, StatesProvs, History,
+     MMSYSTEM;
 
 type
   TSettgsFuncs = class
     procedure LoadSettingsFromIni;
-    procedure WriteDirtySettingsToRecord;
+    procedure LoadAudioComboBox;
+    procedure WriteDirtySettingsToRecord(Sender: TObject);
     procedure SerialNRCustomRangeClick;
     procedure UpdSerialNR(V: integer);
     procedure UpdSerialNRCustomRange(const ARange: string);
-    procedure DisableMainFormStngs(S: boolean);
     procedure UpdateMainFormControlsAfterSave;
   end;
 
@@ -52,8 +53,6 @@ implementation
 
 procedure TSettgsFuncs.LoadSettingsFromIni;
 var
-  C: TContestDefinition;
-  conlist: TStringList;
   i: integer;
 begin
   with frmSettings do
@@ -83,24 +82,17 @@ begin
       ItemIndex := Items.IndexOf(Ini.StateProv);
     end;
 
-    with StringGrid1 do     // placeholder for history file manager (future)
+    // --- Load and verify History Files for Settings StringGrid
+    with StringGrid1 do
     begin
       Cols[0].Add('CONTEST');
       Cols[1].Add('HISTORY FILE');
-      Cells[1,1] := 'ARRLDXCW_USDX.txt'; //temporary
+      Cols[2].Add('DATE');
       ColWidths[0] := 170;
       ColWidths[1] := 200;
+      ColWidths[2] := 150;
+      HistoryFuncs.LoadTheStringGrid;
     end;
-
-    conlist := TStringList.Create;
-    for C in ContestDefinitions do conlist.Add(WideCharToString(C.Name));
-    conlist.Sorted := True;
-
-    for i := 0 to conlist.Count-1 do
-    begin
-      StringGrid1.Cells[0,i+1] := conlist[i];
-    end;
-
 
     trkBarCWSpeed.Position := ini.Wpm;            //CW speed, min, max
     lblMySpeed.Caption := inttostr(ini.Wpm);
@@ -124,65 +116,75 @@ begin
 
     spinSettngActivity.Value := Ini.Activity;
     spinSettngDuration.Value := Ini.Duration;
-    conlist.Free;
+
     end;
 end;
 
-procedure TSettgsFuncs.WriteDirtySettingsToRecord;
+procedure TSettgsFuncs.LoadAudioComboBox;
+var
+  DeviceCount: Integer;
+  DeviceIndex: Integer;
+  DeviceInfo: WAVEOUTCAPS;
+  DeviceNames: TStringList;
 begin
-  with SettgsTentv do
-  begin
-    tmpCall := frmSettings.editSetgsCall.Text;
-    tmpHamName := frmSettings.editFirstName.Text;
-    tmpCQZone := frmSettings.cmboCQZone.ItemIndex + 1;
-    tmpITUZone := frmSettings.cmboITUZone.ItemIndex + 1;
-    tmpARRLSec := frmSettings.cmboARRLSec.Text;
-    tmpStateProv := frmSettings.cmboStateProv.Text;
-    tmpJAPref := frmSettings.editJAPref.Text;
-    tmpJAKuGun := frmSettings.editJAGunKu.Text;
-    tmpAudioDev := frmSettings.cmboAudioDevice.Text;
-    tmpMonLevel := frmSettings.trkBarMonLevel.Position;
-    tmpCWSpeed := frmSettings.trkBarCWSpeed.Position;
-    tmpCWSpdFast := frmSettings.trkBarFasterSpeed.Position;
-    tmpCWSpdSlow := frmSettings.trkBarSlowerSpeed.Position;
-    tmpCWPitch := (300 + 50*(frmSettings.trkBarCWPitch.Position));
-    tmpRxBW := (100 + 50*(frmSettings.trkBarRxBw.Position));
-    tmpActivity := frmSettings.spinSettngActivity.Value;
-    if frmSettings.toggleQSK.State = tssOn then tmpQSK := True else tmpQSK := False;
-    tmpDuration := frmSettings.spinSettngDuration.Value;
-    // Band conditions toggles
-    if frmSettings.toggleQRN.State = tssOn then tmpQRN := True else tmpQRN := False;
-    if frmSettings.toggleQRM.State = tssOn then tmpQRM := True else tmpQRM := False;
-    if frmSettings.toggleQSB.State = tssOn then tmpQSB := True else tmpQSB := False;
-    if frmSettings.toggleFlutter.State = tssOn then tmpFlutter := True else tmpFlutter := False;
-    if frmSettings.toggleLids.State = tssOn then tmpLids := True else tmpLids := False;
-    // Serial number check boxes
-    if frmSettings.radioSN00.Checked then tmpSerNRType := snStartContest;
-    if frmSettings.radioSN01.Checked then tmpSerNRType := snMidContest;
-    if frmSettings.radioSN02.Checked then tmpSerNRType := snEndContest;
-    if frmSettings.radioSN03.Checked then tmpSerNRType := snCustomRange;
-    // tmpSerCustomRange is written by SerialNRCustomRangeClick procedure
+  DeviceNames := TStringList.Create;
+  try
+    DeviceCount := waveOutGetNumDevs();
+    if DeviceCount > 0 then
+    begin
+      DeviceIndex := 0;
+      repeat
+        FillChar(DeviceInfo, SizeOf(WAVEOUTCAPS), 0);
+        if waveOutGetDevCaps(DeviceIndex, @DeviceInfo, SizeOf(WAVEOUTCAPS)) = MMSYSERR_NOERROR then
+        begin
+          DeviceNames.Add(DeviceInfo.szPname);
+        end;
+        Inc(DeviceIndex);
+      until DeviceIndex >= DeviceCount;
+    end;
+    frmSettings.cmboAudioDevice.Items.Assign(DeviceNames);
+  finally
+    DeviceNames.Free;
   end;
 end;
 
-// Disable Settings on Main form when Settings form is active
-procedure TSettgsFuncs.DisableMainFormStngs(S: boolean);
+procedure TSettgsFuncs.WriteDirtySettingsToRecord(Sender: TObject);
 begin
-  with MainForm do
-  begin
-    comboActivity.Enabled := not S;
-    comboMode.Enabled := not S;
-    SimContestCombo.Enabled := not S;
-    ExchangeEdit.Enabled := not S;
-    SpinEdit2.Enabled := not S;
-    GroupBox1.Enabled := not S;
-    GroupBox3.Enabled := not S;
-    spdbtnRun.Enabled := not S;
-    spdbtnPause.Enabled := not S;
-    spdbtnStop.Enabled := not S;
-    spdbtnLeftRIT.Enabled := not S;
-    spdbtnRightRIT.Enabled := not S;
-    spdbtnResetRIT.Enabled := not S;
+  if frmSettings.Showing then    //suppress writing to record on initial startup
+  begin                          //when Settings form is hidden
+    with SettgsTentv do
+    begin
+      tmpCall := frmSettings.editSetgsCall.Text;
+      tmpHamName := frmSettings.editFirstName.Text;
+      tmpCQZone := frmSettings.cmboCQZone.ItemIndex + 1;
+      tmpITUZone := frmSettings.cmboITUZone.ItemIndex + 1;
+      tmpARRLSec := frmSettings.cmboARRLSec.Text;
+      tmpStateProv := frmSettings.cmboStateProv.Text;
+      tmpJAPref := frmSettings.editJAPref.Text;
+      tmpJAKuGun := frmSettings.editJAGunKu.Text;
+      tmpAudioDev := frmSettings.cmboAudioDevice.Text;
+      tmpMonLevel := frmSettings.trkBarMonLevel.Position;
+      tmpCWSpeed := frmSettings.trkBarCWSpeed.Position;
+      tmpCWSpdFast := frmSettings.trkBarFasterSpeed.Position;
+      tmpCWSpdSlow := frmSettings.trkBarSlowerSpeed.Position;
+      tmpCWPitch := (300 + 50*(frmSettings.trkBarCWPitch.Position));
+      tmpRxBW := (100 + 50*(frmSettings.trkBarRxBw.Position));
+      tmpActivity := frmSettings.spinSettngActivity.Value;
+      if frmSettings.toggleQSK.State = tssOn then tmpQSK := True else tmpQSK := False;
+      tmpDuration := frmSettings.spinSettngDuration.Value;
+      // Band conditions toggles
+      if frmSettings.toggleQRN.State = tssOn then tmpQRN := True else tmpQRN := False;
+      if frmSettings.toggleQRM.State = tssOn then tmpQRM := True else tmpQRM := False;
+      if frmSettings.toggleQSB.State = tssOn then tmpQSB := True else tmpQSB := False;
+      if frmSettings.toggleFlutter.State = tssOn then tmpFlutter := True else tmpFlutter := False;
+      if frmSettings.toggleLids.State = tssOn then tmpLids := True else tmpLids := False;
+      // Serial number check boxes
+      if frmSettings.radioSN00.Checked then tmpSerNRType := snStartContest;
+      if frmSettings.radioSN01.Checked then tmpSerNRType := snMidContest;
+      if frmSettings.radioSN02.Checked then tmpSerNRType := snEndContest;
+      if frmSettings.radioSN03.Checked then tmpSerNRType := snCustomRange;
+      // tmpSerCustomRange is written by SerialNRCustomRangeClick procedure
+    end;
   end;
 end;
 
@@ -205,6 +207,8 @@ begin
     SpinEdit3.Value := Ini.Activity;
   end;
 end;
+
+
 
 //----- Serial number procedures -----------------------------------------------
 

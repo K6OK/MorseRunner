@@ -3,7 +3,7 @@ unit CWOPS;
 interface
 
 uses
-  Classes, Generics.Defaults, Generics.Collections, Contest, Contnrs,
+  Classes, Generics.Defaults, Generics.Collections, Contest, Contnrs, Dialogs,
   Station, DxStn, Log;
 
 type
@@ -45,7 +45,7 @@ type
 implementation
 
 uses
-    SysUtils, DXCC;
+    SysUtils, DXCC, Ini, History;
 
 function TCWOPS.LoadCallHistory(const AUserCallsign : string) : boolean;
 const
@@ -64,6 +64,14 @@ begin
     if Result then
       Exit;
 
+    // if Call History file doesn't exist then exit
+    if HistFileMissing = True then
+    begin
+      HistoryFuncs.HistoryFileMissing;
+      Exit;
+    end;
+
+
     slst:= TStringList.Create;
     tl:= TStringList.Create;
     CWO := nil;
@@ -71,7 +79,8 @@ begin
     try
         CWOPSList.Clear;
 
-        slst.LoadFromFile(ParamStr(1) + 'CWOPS.LIST');
+        //slst.LoadFromFile(ParamStr(1) + 'CWOPS.LIST');
+        slst.LoadFromFile(ExtractFilePath(ParamStr(0)) + HistFileNames[scCwt]);
 
         for i:= 0 to slst.Count-1 do begin
             if (slst.Strings[i].StartsWith('!!Order!!')) then continue;
