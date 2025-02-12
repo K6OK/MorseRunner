@@ -45,7 +45,7 @@ type
 implementation
 
 uses
-    SysUtils, DXCC, Ini, History;
+    SysUtils, DXCC, Ini, History, TrainingFuncs;
 
 function TCWOPS.LoadCallHistory(const AUserCallsign : string) : boolean;
 const
@@ -147,8 +147,32 @@ end;
 
 
 function TCWOPS.GetCall(id : integer): string;
+var
+  i : integer;
 begin
-     result := CWOPSList[id].Call;
+  if CurrentActivity = atPractice then
+  begin
+    Result := CWOPSList[id].Call;
+    Exit;
+  end;
+  if CurrentActivity = atTraining then
+  begin
+    if TrainCallType = trncall4char then
+    begin
+      Repeat
+        i := random(CWOPSList.Count);
+      Until Length(CWOPSList[i].Call) = 4;
+      Result := CWOPSList[i].Call;
+      Exit;
+    end;
+    if TrainCallType = trncall5char then
+    begin
+      Repeat
+        i := random(CWOPSList.Count);
+      Until Length(CWOPSList[i].Call) = 5;
+      Result := CWOPSList[i].Call;
+    end;
+  end;
 end;
 
 

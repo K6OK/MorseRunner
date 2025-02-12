@@ -8,10 +8,10 @@ unit CallLst;
 interface
 
 uses
-  Classes;
+  Classes, Dialogs;
 
 type
-  // simple calllist. contains a TStringList of callsigns.
+  // simple calllist. contains a TStringList of callsigns. Only used for CQ WPX
   TCallList = class
   protected
     Calls: TStringList;
@@ -29,7 +29,7 @@ type
 implementation
 
 uses
-  SysUtils, Ini;
+  SysUtils, StrUtils, Ini, TrainingFuncs;
 
 function CompareCalls(Item1, Item2: Pointer): Integer;
 begin
@@ -124,9 +124,37 @@ begin
     Result := 'P29SX';
     Exit;
   end;
+  if CurrentActivity = atPractice then
+  begin
+      Idx := Random(Calls.Count);
+      Result := Calls[Idx];
+  end;
+  if CurrentActivity = atTraining then
+  begin
+    if TrainCallType = trncall3USA then
+    begin
+      Result := TrainFuncs.GenerateRandom1x1USACalls;
+      Exit;
+    end;
+    if TrainCallType = trncall3Wrld then
+    begin
+      Result := TrainFuncs.GenerateRandom1x1WorldCalls;
+      Exit;
+    end;
+    if TrainCallType = trncall4char then
+    begin
+      Idx := Random(Calls.Count);
+      Result := LeftStr(Calls[Idx], 4);
+      Exit;
+    end;
+    if TrainCallType = trncall5char then
+    begin
+      Idx := Random(Calls.Count);
+      Result := LeftStr(Calls[Idx], 5);
+    end;
+  end;
 
-  Idx := Random(Calls.Count);
-  Result := Calls[Idx];
+
 
   if Ini.RunMode = rmHst then
     Calls.Delete(Idx);

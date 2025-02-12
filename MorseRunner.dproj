@@ -186,6 +186,11 @@
             <Form>frmHistoryHelp</Form>
             <FormType>dfm</FormType>
         </DCCReference>
+        <DCCReference Include="Training.pas">
+            <Form>frmTraining</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="TrainingFuncs.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

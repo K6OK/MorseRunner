@@ -2219,6 +2219,19 @@ object frmSplash: TfrmSplash
       Font.Style = []
       ParentFont = False
     end
+    object Label3: TLabel
+      Left = 40
+      Top = 16
+      Width = 133
+      Height = 17
+      Caption = 'BETA FOR EVAL ONLY'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clRed
+      Font.Height = -13
+      Font.Name = 'Segoe UI'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
     object btnSplashClose: TButton
       Left = 400
       Top = 120

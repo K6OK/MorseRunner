@@ -41,6 +41,12 @@ type
     tmpFlutter: boolean; tmpLids: boolean;
     tmpSerNRType: TSerialNRTypes;
     tmpSerCustomRange: string;
+    //Training
+    tmpContestTrain: TSimContest;
+    tmpDurationTrain: integer;
+    tmpWpmTrain: integer;
+    tmpTrain3U: boolean; tmpTrain3W: boolean;
+    tmpTrain4C: boolean; tmpTrain5C: boolean;
   end;
 
 //const
@@ -117,7 +123,16 @@ begin
     spinSettngActivity.Value := Ini.Activity;
     spinSettngDuration.Value := Ini.Duration;
 
-    end;
+    // --- Training
+    if SimContestTrain = scWpx then cmboTrainSettCont.ItemIndex := 0;
+    if SimContestTrain = scCwt then cmboTrainSettCont.ItemIndex := 1;
+    spinTrainSettDur.Value := DurationTrain;
+    trkTrainCW.Position := WpmTrain;
+    radioSetTrn3CharUSA.Checked := rdoTrain3U;
+    radioSetTrn3CharWrld.Checked := rdoTrain3W;
+    radioSetTrn4Char.Checked := rdoTrain4C;
+    radioSetTrn5Char.Checked := rdoTrain5C;
+  end;
 end;
 
 procedure TSettgsFuncs.LoadAudioComboBox;
@@ -184,6 +199,18 @@ begin
       if frmSettings.radioSN02.Checked then tmpSerNRType := snEndContest;
       if frmSettings.radioSN03.Checked then tmpSerNRType := snCustomRange;
       // tmpSerCustomRange is written by SerialNRCustomRangeClick procedure
+
+      // Training
+      if frmSettings.cmboTrainSettCont.ItemIndex = 0 then
+        tmpContestTrain := scWpx;
+      if frmSettings.cmboTrainSettCont.ItemIndex = 1 then
+        tmpContestTrain := scCwt;
+      tmpDurationTrain := frmSettings.spinTrainSettDur.Value;
+      tmpWpmTrain := frmSettings.trkTrainCW.Position;
+      tmpTrain3U := frmSettings.radioSetTrn3CharUSA.Checked;
+      tmpTrain3W := frmSettings.radioSetTrn3CharWrld.Checked;
+      tmpTrain4C := frmSettings.radioSetTrn4Char.Checked;
+      tmpTrain5C := frmSettings.radioSetTrn5Char.Checked;
     end;
   end;
 end;

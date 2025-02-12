@@ -10,9 +10,9 @@ uses
 type
   TfrmSettings = class(TForm)
     pageSettings: TPageControl;
-    TabSheet1: TTabSheet;
-    TabSheet2: TTabSheet;
-    TabSheet3: TTabSheet;
+    tabGeneral: TTabSheet;
+    tabCW: TTabSheet;
+    TabHistory: TTabSheet;
     boxMyStation: TGroupBox;
     editSetgsCall: TEdit;
     lblSetgsCall: TLabel;
@@ -91,6 +91,26 @@ type
     spdbtnHistGridRowDown: TSpeedButton;
     lblHistSelRow: TLabel;
     btnHelpHistory: TButton;
+    tabTrain: TTabSheet;
+    boxTrainCWSpd: TGroupBox;
+    trkTrainCW: TTrackBar;
+    lblTrainWPM: TLabel;
+    lblTrainCWSpd: TLabel;
+    GroupBox1: TGroupBox;
+    radioSetTrn3CharUSA: TRadioButton;
+    radioSetTrn3CharWrld: TRadioButton;
+    radioSetTrn4Char: TRadioButton;
+    radioSetTrn5Char: TRadioButton;
+    lblTrainCall1: TLabel;
+    Label1: TLabel;
+    Label2: TLabel;
+    Label3: TLabel;
+    Label7: TLabel;
+    cmboTrainSettCont: TComboBox;
+    spinTrainSettDur: TSpinEdit;
+    Label4: TLabel;
+    Label6: TLabel;
+    Label8: TLabel;
     procedure LoadtheForm(Sender: TObject);
     procedure radioSN03Click(Sender: TObject);
     procedure btnSettingsSaveClick(Sender: TObject);
@@ -107,6 +127,8 @@ type
     procedure spdbtnHistGridRowUpClick(Sender: TObject);
     procedure btnChangeHistClick(Sender: TObject);
     procedure btnHelpHistoryClick(Sender: TObject);
+    procedure cmboTrainSettContChange(Sender: TObject);
+    procedure trkTrainCWChange(Sender: TObject);
 
 
   private
@@ -171,6 +193,14 @@ begin
     Ini.Duration := tmpDuration;
     Ini.Qrn := tmpQRN; Ini.Qrm := tmpQRM; Ini.Qsb := tmpQSB;
     Ini.Flutter := tmpFlutter; Ini.Lids := tmpLids;
+    //Training
+    Ini.SimContestTrain := tmpContestTrain;
+    Ini.DurationTrain := tmpDurationTrain;
+    Ini.WpmTrain := tmpWpmTrain;
+    Ini.rdoTrain3U := tmpTrain3U;
+    Ini.rdoTrain3W := tmpTrain3W;
+    Ini.rdoTrain4C := tmpTrain4C;
+    Ini.rdoTrain5C := tmpTrain5C;
   end;
   V := Ord(SettgsTentv.tmpSerNRType);
   SettgsFuncs.UpdSerialNR(V);
@@ -179,6 +209,9 @@ begin
   Close;
   Release;
 end;
+
+
+
 
 //----- CANCEL, discard changes and read from Ini file -------------------------
 
@@ -294,4 +327,34 @@ begin
   frmHistoryHelp.ShowModal;
 end;
 
+//Training
+procedure TfrmSettings.cmboTrainSettContChange(Sender: TObject);
+begin
+  if cmboTrainSettCont.ItemIndex = 0 then
+  begin
+    radioSetTrn3CharUSA.Enabled := True;
+    radioSetTrn3CharWrld.Enabled := True;
+    radioSetTrn4Char.Enabled := True;
+    radioSetTrn4Char.Enabled := True;
+  end;
+  if cmboTrainSettCont.ItemIndex = 1 then
+  begin
+    radioSetTrn3CharUSA.Enabled := False;
+    radioSetTrn3CharWrld.Enabled := False;
+    radioSetTrn4Char.Enabled := True;
+    radioSetTrn4Char.Enabled := True;
+  end;
+  SettingsFormDirty(Sender);
+end;
+
+procedure TfrmSettings.trkTrainCWChange(Sender: TObject);
+begin
+  lblTrainCWSpd.Caption := inttoStr(trkTrainCW.Position);
+  SettingsFormDirty(Sender);
+end;
+
+
+
+
 end.
+

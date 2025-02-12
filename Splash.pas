@@ -19,6 +19,7 @@ type
     Label5: TLabel;
     Label6: TLabel;
     btnSplashClose: TButton;
+    Label3: TLabel;
     procedure DoSplash;
     procedure TimerSplashTimer(Sender: TObject);
     procedure btnSplashCloseClick(Sender: TObject);

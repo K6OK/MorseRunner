@@ -167,7 +167,7 @@ var
   newFile : string;    //new history file with full path
   oldName : string;    //old history file without path
   oldFile : string;    //old history file with path
-  i : integer;     att: integer;
+  i : integer;
 begin
   //lookup the existing history file for this contest
   oldName := GetExistingHistFileName(ctName);

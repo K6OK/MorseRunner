@@ -7668,6 +7668,8 @@ object MainForm: TMainForm
     Top = 204
   end
   object Timer1: TTimer
+    Interval = 400
+    OnTimer = Timer1Timer
     Left = 432
     Top = 219
   end

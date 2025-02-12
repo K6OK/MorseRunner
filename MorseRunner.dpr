@@ -57,7 +57,9 @@ uses
   ArrlSections in 'Util\ArrlSections.pas',
   Splash in 'Splash.pas' {frmSplash},
   History in 'History.pas',
-  HistoryHelp in 'HistoryHelp.pas' {frmHistoryHelp};
+  HistoryHelp in 'HistoryHelp.pas' {frmHistoryHelp},
+  Training in 'Training.pas' {frmTraining},
+  TrainingFuncs in 'TrainingFuncs.pas';
 
 {$R *.RES}
 

@@ -238,7 +238,7 @@ type
     procedure comboActivitySelect(Sender: TObject); // (K6OK)
     procedure comboModeRefresh;
     procedure SpeedButton12Click(Sender: TObject);
-    procedure mnuSettingsClick(Sender: TObject); // (K6OK)
+    procedure mnuSettingsClick(Sender: TObject);  // (K6OK)
 
   private
     MustAdvance: boolean;       // Controls when Exchange fields advance
@@ -333,7 +333,7 @@ uses
   MorseKey, FarnsKeyer, CallLst,
   SysUtils, ShellApi, Crc32, Idhttp, Math, IniFiles, History,
   Dialogs, System.UITypes, TypInfo, ScoreDlg, Log, PerlRegEx, StrUtils,
-  SettingsFuncs, Splash;
+  SettingsFuncs, Splash, Training, TrainingFuncs;
 
 {$R *.DFM}
 
@@ -425,10 +425,15 @@ begin
   MakeKeyer(DEFAULTRATE, Ini.BufSize);
 
   // create a derived TContest of the appropriate type
+  if Edit4.Text = '' then Edit4.Text := Ini.Call;
   SetContest(Ini.SimContest);
 
   // start the TTimer for timekeeping (K6OK)
   Timer1.Enabled := True;
+
+  // temporary
+  TrainingFuncs.PracticeStashDurWpm[0] := Ini.Wpm;
+  TrainingFuncs.PracticeStashDurWpm[1] := Ini.Duration;
 
 
 end;
@@ -1629,9 +1634,26 @@ end;
 
 procedure TMainForm.comboActivitySelect(Sender: TObject);
 begin
+  // If coming from Training mode then
+  // restore Ini.Wpm, Duration back to Practice values
+  if Ini.CurrentActivity = atTraining then
+  begin
+    Ini.Wpm := TrainingFuncs.PracticeStashDurWpm[0];
+    spinCWSpeed.Value := Ini.Wpm;
+    Ini.Duration := TrainingFuncs.PracticeStashDurWpm[1];
+    SpinEdit2.Value := Ini.Duration;
+    Ini.RunMode := rmPileup;
+  end;
+  //Now update the current activity
   Ini.CurrentActivity := TActivityType(comboActivity.ItemIndex);
   SimContestComboRefresh;
   comboModeRefresh;
+  if Ini.CurrentActivity = atTraining then
+  begin
+    frmTraining := TfrmTraining.Create(Application);
+    frmTraining.ShowModal;
+  end;
+
 end;
 
 
@@ -2080,7 +2102,7 @@ begin
     PausedTime := (Now - PauseStartTime) + PausedTime;
     pgmState := psRunningAfterPause;
   end;
-  Run(DefaultRunMode, Ini.pgmState);
+  Run(Ini.RunMode, Ini.pgmState);
   labelStatus.Caption := 'Status: Running';
   SpdBtnVisibility(1);
 end;

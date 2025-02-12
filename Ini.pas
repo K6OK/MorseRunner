@@ -18,6 +18,7 @@ const
   SEC_SYS = 'System';
   SEC_SET = 'Settings';
   SEC_HSY = 'HistoryFiles';
+  SEC_TRN = 'Training';
   SEC_DBG = 'Debug';
 
   DEFAULTBUFCOUNT = 8;
@@ -122,7 +123,7 @@ const
 
     (Name: 'CWOPS CWT';
      Key: 'Cwt';
-     Activities: [atPractice];
+     Activities: [atPractice, atTraining];
      ExchType1: etOpName;
      ExchType2: etGenericField;
      ExchCaptions: ('Name', 'Exch');
@@ -188,7 +189,7 @@ const
 
     (Name: 'K1USN Slow Speed Test';
      Key: 'Sst';
-     Activities: [atPractice, atTraining];
+     Activities: [atPractice];
      ExchType1: etOpName;
      ExchType2: etGenericField;  // or etStateProvDx?
      ExchCaptions: ('Name', 'State/Prov/DX');
@@ -317,6 +318,17 @@ var
   UserExchangeTbl: array[TSimContest] of string;
   UserExchange1: array[TSimContest] of string;
   UserExchange2: array[TSimContest] of string;
+
+  // Training settings
+  SimContestTrain: TSimContest = scWpx;
+  DurationTrain: integer = 7;
+  WpmTrain: integer = 22;
+  rdoTrain3U: boolean = True;
+  rdoTrain3W: boolean = False;
+  rdoTrain4C: boolean = False;
+  rdoTrain5C: boolean = False;
+
+
 
 procedure FromIni(cb : TErrMessageCallback);
 procedure ToIni;
@@ -517,6 +529,18 @@ begin
             Ord(SC)), HistFileDeflt[SC]);
       end;
 
+      // [Training]
+      if ReadInteger(SEC_TRN, 'SimContestTrain', 0) = 0 then
+        SimContestTrain := scWpx;
+      if ReadInteger(SEC_TRN, 'SimContestTrain', 0) = 1 then
+        SimContestTrain := scCwt;
+      DurationTrain := ReadInteger(SEC_TRN, 'DurationTrain', DurationTrain);
+      WpmTrain := ReadInteger(SEC_TRN, 'WpmTrain', WpmTrain);
+      rdoTrain3U := ReadBool(SEC_TRN, 'rdoTrain3U', rdoTrain3U);
+      rdoTrain3W := ReadBool(SEC_TRN, 'rdoTrain3W', rdoTrain3W);
+      rdoTrain4C := ReadBool(SEC_TRN, 'rdoTrain4C', rdoTrain4C);
+      rdoTrain5C := ReadBool(SEC_TRN, 'rdoTrain5C', rdoTrain5C);
+
       // [Debug]
       DebugExchSettings := ReadBool(SEC_DBG, 'DebugExchSettings', DebugExchSettings);
       DebugCwDecoder := ReadBool(SEC_DBG, 'DebugCwDecoder', DebugCwDecoder);
@@ -534,7 +558,7 @@ var
   V: integer; //i: integer;
   SC: TSimContest;
   KeyName: String;
-  IniPath: String; wholep: string;
+  IniPath: String;
 begin
   IniPath := IncludeTrailingPathDelimiter(GetEnvironmentVariable('LOCALAPPDATA'));
   with TIniFile.Create(IniPath + INI_FLDRNAME + '\'+ INI_FILENAME) do
@@ -620,6 +644,14 @@ begin
           Ord(SC)), HistFileNames[SC]);
       end;
 
+      // [Training]
+      WriteInteger(SEC_TRN, 'SimContestTrain', Ord(SimContestTrain));
+      WriteInteger(SEC_TRN, 'DurationTrain', DurationTrain);
+      WriteInteger(SEC_TRN, 'WpmTrain', WpmTrain);
+      WriteBool(SEC_TRN, 'rdoTrain3U', rdoTrain3U);
+      WriteBool(SEC_TRN, 'rdoTrain3W', rdoTrain3W);
+      WriteBool(SEC_TRN, 'rdoTrain4C', rdoTrain4C);
+      WriteBool(SEC_TRN, 'rdoTrain5C', rdoTrain5C);
 
       // Main form size and position             (K6OK)
       WriteInteger(SEC_SYS,'fmTop',MainForm.Top);
