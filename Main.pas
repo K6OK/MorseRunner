@@ -239,6 +239,7 @@ type
     procedure comboModeRefresh;
     procedure SpeedButton12Click(Sender: TObject);
     procedure mnuSettingsClick(Sender: TObject);  // (K6OK)
+    procedure SpdBtnVisibility(valu: integer);  // (K6OK)
 
   private
     MustAdvance: boolean;       // Controls when Exchange fields advance
@@ -264,7 +265,7 @@ type
     procedure UpdateRitIndicator;
     procedure DecSpeed;
     procedure IncSpeed;
-    procedure SpdBtnVisibility(valu: integer);  // (K6OK)
+
 
 
   public
@@ -298,6 +299,7 @@ type
     procedure UpdCWMaxRxSpeed(Maxspd: integer);
     procedure ClientHTTP1Redirect(Sender: TObject; var dest: string;
       var NumRedirect: Integer; var Handled: Boolean; var VMethod: string);
+
     
   end;
 
@@ -1235,6 +1237,7 @@ end;
 
 procedure TMainForm.SetDefaultRunMode(V : Integer);
 begin
+
   if (V >= Ord(rmPileUp)) and (V <= Ord(rmSingle)) then
     DefaultRunMode := TRunMode(V)
   else
@@ -1246,7 +1249,11 @@ begin
   assert(PopupMenu1.Items[3].Tag = Ord(rmHst)+1);
 //  PopupMenu1.Items[Ord(DefaultRunMode)-1].Default := True;
   PopupMenu1.Items[Ord(DefaultRunMode)].Default := True;
+
   Self.comboMode.ItemIndex := Ord(DefaultRunMode);
+  if V > 1 then Ini.CurrentActivity := atCompetition;
+  Self.comboActivity.ItemIndex := Ord(Ini.CurrentActivity);
+
 end;
 
 
@@ -1642,17 +1649,13 @@ begin
     spinCWSpeed.Value := Ini.Wpm;
     Ini.Duration := TrainingFuncs.PracticeStashDurWpm[1];
     SpinEdit2.Value := Ini.Duration;
-    Ini.RunMode := rmPileup;
+    Ini.DefaultRunMode := rmPileup;
   end;
   //Now update the current activity
   Ini.CurrentActivity := TActivityType(comboActivity.ItemIndex);
   SimContestComboRefresh;
   comboModeRefresh;
-  if Ini.CurrentActivity = atTraining then
-  begin
-    frmTraining := TfrmTraining.Create(Application);
-    frmTraining.ShowModal;
-  end;
+  if Ini.CurrentActivity = atTraining then TrainFuncs.InitiateTrainSession;
 
 end;
 
@@ -1830,9 +1833,26 @@ end;
 
 
 procedure TMainForm.RunMNUClick(Sender: TObject);
+var
+  i : integer;
 begin
-  SetDefaultRunMode((Sender as TComponent).Tag);
-  Run(DefaultRunMode, pgmState);
+
+  i := (Sender as TComponent).Tag - 1;
+  if i < 2 then
+  begin
+    Ini.CurrentActivity := atPractice;
+    comboActivity.ItemIndex := 0;
+  end
+  else
+  begin
+    Ini.CurrentActivity := atCompetition;
+    comboActivity.ItemIndex := 2;
+  end;
+  if i = 2 then SetContest(scWpx);
+  if i = 3 then SetContest(scHst);
+  SetDefaultRunMode(i);
+  ComboModeRefresh;
+  MainForm.spdbtnRunClick(nil);
 end;
 
 
@@ -2102,9 +2122,16 @@ begin
     PausedTime := (Now - PauseStartTime) + PausedTime;
     pgmState := psRunningAfterPause;
   end;
-  Run(Ini.RunMode, Ini.pgmState);
   labelStatus.Caption := 'Status: Running';
   SpdBtnVisibility(1);
+  if not (Ini.CurrentActivity = atTraining) then
+  begin
+    Run(Ini.DefaultRunMode, Ini.pgmState)
+  end
+  else
+  begin
+    TrainFuncs.InitiateTrainSession;
+  end;
 end;
 
 procedure TMainForm.spdbtnPauseClick(Sender: TObject);
@@ -2129,6 +2156,11 @@ begin
    EnableCtl(ExchangeEdit, True);
    EnableCtl(SpinEdit2, True);
    EnableCtl(Edit4, True);
+   EnableCtl(GroupBox3, True);
+   PileUp1.Enabled := True;
+   SingleCalls1.Enabled := True;
+   Competition1.Enabled := True;
+   HSTCompetition2.Enabled := True;
 end;
 
 procedure TMainForm.SpdBtnVisibility(valu: integer);
@@ -2646,7 +2678,7 @@ end;
 
 procedure TMainForm.StopMNUClick(Sender: TObject);
 begin
-  Ini.pgmState := psStopped;
+  spdbtnStopClick(nil);
 end;
 
 

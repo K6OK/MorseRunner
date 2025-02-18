@@ -2,10 +2,11 @@ unit TrainingFuncs;
 
 interface
 
-uses SysUtils, Training, Main, Ini;
+uses SysUtils, Training, Main, Ini, Forms;
 
 type
   TTrainFuncs = class
+    procedure TrainFormCreate;
     procedure InitiateTrainSession;
     function GenerateRandom1x1USACalls : string;
     function GenerateRandom1x1WorldCalls : string;
@@ -27,8 +28,15 @@ var
 
 implementation
 
+procedure TTrainFuncs.TrainFormCreate;
+begin
+  frmTraining := TfrmTraining.Create(Application);
+  frmTraining.ShowModal;
+end;
+
 procedure TTrainFuncs.InitiateTrainSession;
 begin
+  TrainFormCreate;
   with frmTraining do
   begin
     if radioTrn3U.Checked then TrainCallType := trncall3USA;
@@ -40,16 +48,19 @@ begin
   PracticeStashDurWpm[1] := Ini.Duration;
   Ini.Duration := frmTraining.spinTrainDur.Value;
   Ini.Wpm := frmTraining.trkTrainCW.Position;
+  Ini.DefaultRunMode := rmSingle;
+  Ini.pgmState := psRunning;
+  MainForm.labelStatus.Caption := 'Status: Running';
+  MainForm.SpdBtnVisibility(1);
   with MainForm do
   begin
     SpinEdit2.Value := Ini.Duration;
     spinCWSpeed.Value := Ini.Wpm;
     comboMode.ItemIndex := 1;  // Force single calls
-    Ini.RunMode := rmSingle;
-    spdbtnRunClick(nil);
   end;
   frmTraining.Close;
   frmTraining.Release;
+  MainForm.Run(Ini.DefaultRunMode, Ini.pgmState);
 end;
 
 function TTrainFuncs.GenerateRandom1x1USACalls : string;

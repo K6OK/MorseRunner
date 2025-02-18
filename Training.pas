@@ -46,11 +46,13 @@ implementation
 
 {$R *.dfm}
 
-uses TrainingFuncs;
+uses TrainingFuncs, Ini;
 
 procedure TfrmTraining.btnTrainStartClick(Sender: TObject);
 begin
-  TrainFuncs.InitiateTrainSession;
+  frmTraining.Close;
+  frmTraining.Release;
+  MainForm.Run(Ini.DefaultRunMode, Ini.pgmState);
 end;
 
 procedure TfrmTraining.cmboTrainConChange(Sender: TObject);

@@ -6439,7 +6439,7 @@ object MainForm: TMainForm
       object CheckBox3: TCheckBox
         Left = 12
         Top = 41
-        Width = 45
+        Width = 58
         Height = 17
         TabStop = False
         Caption = 'QRM'

@@ -51,7 +51,7 @@ object frmTraining: TfrmTraining
     Width = 449
     Height = 136
     Caption = ' Call Signs of Calling Stations '
-    TabOrder = 0
+    TabOrder = 4
     object lblTrainCall1: TLabel
       Left = 312
       Top = 32
@@ -145,7 +145,7 @@ object frmTraining: TfrmTraining
     Width = 75
     Height = 25
     Caption = 'Cancel'
-    TabOrder = 1
+    TabOrder = 5
     OnClick = btnTrainCancelClick
   end
   object btnTrainStart: TButton
@@ -160,7 +160,7 @@ object frmTraining: TfrmTraining
     Font.Name = 'Segoe UI'
     Font.Style = [fsBold]
     ParentFont = False
-    TabOrder = 2
+    TabOrder = 0
     OnClick = btnTrainStartClick
   end
   object boxTrainCWSpd: TGroupBox
@@ -224,7 +224,7 @@ object frmTraining: TfrmTraining
     Font.Style = []
     ItemIndex = 0
     ParentFont = False
-    TabOrder = 4
+    TabOrder = 1
     TabStop = False
     Text = 'CQ WPX'
     OnChange = cmboTrainConChange
@@ -247,7 +247,7 @@ object frmTraining: TfrmTraining
     MaxValue = 240
     MinValue = 1
     ParentFont = False
-    TabOrder = 5
+    TabOrder = 2
     Value = 7
   end
 end

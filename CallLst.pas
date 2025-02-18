@@ -124,7 +124,7 @@ begin
     Result := 'P29SX';
     Exit;
   end;
-  if CurrentActivity = atPractice then
+  if not (CurrentActivity = atTraining) then
   begin
       Idx := Random(Calls.Count);
       Result := Calls[Idx];
