@@ -1,9 +1,11 @@
 object frmSplash: TfrmSplash
   Left = 0
   Top = 0
-  BorderStyle = bsNone
-  ClientHeight = 391
-  ClientWidth = 483
+  BorderIcons = []
+  BorderStyle = bsSingle
+  BorderWidth = 1
+  ClientHeight = 387
+  ClientWidth = 485
   Color = clWhite
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText

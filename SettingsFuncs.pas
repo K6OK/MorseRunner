@@ -45,8 +45,11 @@ type
     tmpContestTrain: TSimContest;
     tmpDurationTrain: integer;
     tmpWpmTrain: integer;
+    tmpCpmTrain: integer;
     tmpTrain3U: boolean; tmpTrain3W: boolean;
     tmpTrain4C: boolean; tmpTrain5C: boolean;
+    tmpTrain45Mix: boolean;
+    tmpFarnsw: boolean;
   end;
 
 //const
@@ -127,7 +130,7 @@ begin
     if SimContestTrain = scWpx then cmboTrainSettCont.ItemIndex := 0;
     if SimContestTrain = scCwt then cmboTrainSettCont.ItemIndex := 1;
     spinTrainSettDur.Value := DurationTrain;
-    trkTrainCW.Position := WpmTrain;
+    trkTrainWPM.Position := WpmTrain;
     radioSetTrn3CharUSA.Checked := rdoTrain3U;
     radioSetTrn3CharWrld.Checked := rdoTrain3W;
     radioSetTrn4Char.Checked := rdoTrain4C;
@@ -164,11 +167,14 @@ begin
 end;
 
 procedure TSettgsFuncs.WriteDirtySettingsToRecord(Sender: TObject);
+var
+  i : integer;
 begin
   if frmSettings.Showing then    //suppress writing to record on initial startup
   begin                          //when Settings form is hidden
     with SettgsTentv do
     begin
+      // General tab
       tmpCall := frmSettings.editSetgsCall.Text;
       tmpHamName := frmSettings.editFirstName.Text;
       tmpCQZone := frmSettings.cmboCQZone.ItemIndex + 1;
@@ -179,6 +185,7 @@ begin
       tmpJAKuGun := frmSettings.editJAGunKu.Text;
       tmpAudioDev := frmSettings.cmboAudioDevice.Text;
       tmpMonLevel := frmSettings.trkBarMonLevel.Position;
+      // Practice tab
       tmpCWSpeed := frmSettings.trkBarCWSpeed.Position;
       tmpCWSpdFast := frmSettings.trkBarFasterSpeed.Position;
       tmpCWSpdSlow := frmSettings.trkBarSlowerSpeed.Position;
@@ -187,30 +194,33 @@ begin
       tmpActivity := frmSettings.spinSettngActivity.Value;
       if frmSettings.toggleQSK.State = tssOn then tmpQSK := True else tmpQSK := False;
       tmpDuration := frmSettings.spinSettngDuration.Value;
-      // Band conditions toggles
       if frmSettings.toggleQRN.State = tssOn then tmpQRN := True else tmpQRN := False;
       if frmSettings.toggleQRM.State = tssOn then tmpQRM := True else tmpQRM := False;
       if frmSettings.toggleQSB.State = tssOn then tmpQSB := True else tmpQSB := False;
       if frmSettings.toggleFlutter.State = tssOn then tmpFlutter := True else tmpFlutter := False;
       if frmSettings.toggleLids.State = tssOn then tmpLids := True else tmpLids := False;
-      // Serial number check boxes
       if frmSettings.radioSN00.Checked then tmpSerNRType := snStartContest;
       if frmSettings.radioSN01.Checked then tmpSerNRType := snMidContest;
       if frmSettings.radioSN02.Checked then tmpSerNRType := snEndContest;
       if frmSettings.radioSN03.Checked then tmpSerNRType := snCustomRange;
       // tmpSerCustomRange is written by SerialNRCustomRangeClick procedure
-
-      // Training
-      if frmSettings.cmboTrainSettCont.ItemIndex = 0 then
+      // Training tab
+      i := frmSettings.cmboTrainSettCont.ItemIndex;
+      case i of
+        0: tmpContestTrain := scWpx;
+        1: tmpContestTrain := scCwt;
+        2: tmpContestTrain := scSst;
+      else
         tmpContestTrain := scWpx;
-      if frmSettings.cmboTrainSettCont.ItemIndex = 1 then
-        tmpContestTrain := scCwt;
+      end;
       tmpDurationTrain := frmSettings.spinTrainSettDur.Value;
-      tmpWpmTrain := frmSettings.trkTrainCW.Position;
+      tmpWpmTrain := frmSettings.trkTrainWPM.Position;
+      if frmSettings.toggleFarnsworth.State = tssOn then tmpFarnsw := True else tmpFarnsw := False;
       tmpTrain3U := frmSettings.radioSetTrn3CharUSA.Checked;
       tmpTrain3W := frmSettings.radioSetTrn3CharWrld.Checked;
       tmpTrain4C := frmSettings.radioSetTrn4Char.Checked;
       tmpTrain5C := frmSettings.radioSetTrn5Char.Checked;
+      tmpTrain45Mix := frmSettings.radioSetTrn45Mixed.Checked;
     end;
   end;
 end;

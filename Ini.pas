@@ -41,9 +41,9 @@ type
 
   // TPgmState: Track current state of program as running, paused,
   // running after a pause, or stopped
-  // Replace rmStop and FStopPressed with psStop
-  // Remove rmStop from TRunMode   (K6OK)
+  // TPgmCmnd: Request that program state be changed  (K6OK)
   TPgmState = (psRunning, psPaused, psRunningAfterPause, psStopped);
+  TPgmCmnd = (cmndRun, cmndPause, cmndStop);
 
   TRunMode = (rmPileup, rmSingle, rmWpx, rmHst);
 
@@ -77,6 +77,7 @@ type
     Name: PChar;    // Contest Name. Used in SimContestCombo dropdown box.
     Key: PChar;     // Identifying key (used in Ini files)
     Activities: TActivityTypes; // Contest is displayed under one or more activities
+    FarnswthAllowed: boolean;   // Farnsworth spacing for some contests
     ExchType1: TExchange1Type;
     ExchType2: TExchange2Type;
     ExchCaptions: array[0..1] of String; // exchange field captions
@@ -113,6 +114,7 @@ const
     (Name: 'CQ WPX';
      Key: 'CqWpx';
      Activities: [atPractice, atTraining, atCompetition];
+     FarnswthAllowed: True;
      ExchType1: etRST;
      ExchType2: etSerialNr;
      ExchFieldEditable: True;
@@ -124,6 +126,7 @@ const
     (Name: 'CWOPS CWT';
      Key: 'Cwt';
      Activities: [atPractice, atTraining];
+     FarnswthAllowed: True;
      ExchType1: etOpName;
      ExchType2: etGenericField;
      ExchCaptions: ('Name', 'Exch');
@@ -137,6 +140,7 @@ const
     (Name: 'ARRL Field Day';
      Key: 'ArrlFd';
      Activities: [atPractice];
+     FarnswthAllowed: False;
      ExchType1: etFdClass;
      ExchType2: etArrlSection;
      ExchFieldEditable: True;
@@ -148,6 +152,7 @@ const
     (Name: 'NCJ NAQP';
      Key: 'NAQP';
      Activities: [atPractice];
+     FarnswthAllowed: False;
      ExchType1: etOpName;
      ExchType2: etNaQpExch2;
      ExchFieldEditable: True;
@@ -159,6 +164,7 @@ const
     (Name: 'HST (High Speed Test)';
      Key: 'HST';
      Activities: [atPractice, atCompetition];
+     FarnswthAllowed: False;
      ExchType1: etRST;
      ExchType2: etSerialNr;
      ExchFieldEditable: False;
@@ -170,6 +176,7 @@ const
     (Name: 'CQ WW';
      Key: 'CQWW';
      Activities: [atPractice];
+     FarnswthAllowed: False;
      ExchType1: etRST;
      ExchType2: etCQZone;
      ExchFieldEditable: True;
@@ -180,6 +187,7 @@ const
     (Name: 'ARRL DX';
      Key: 'ArrlDx';
      Activities: [atPractice];
+     FarnswthAllowed: False;
      ExchType1: etRST;
      ExchType2: etStateProv;  // or etPower
      ExchFieldEditable: True;
@@ -189,7 +197,8 @@ const
 
     (Name: 'K1USN Slow Speed Test';
      Key: 'Sst';
-     Activities: [atPractice];
+     Activities: [atPractice, atTraining];
+     FarnswthAllowed: True;
      ExchType1: etOpName;
      ExchType2: etGenericField;  // or etStateProvDx?
      ExchCaptions: ('Name', 'State/Prov/DX');
@@ -203,6 +212,7 @@ const
     (Name: 'JARL ALL JA';
      Key: 'AllJa';
      Activities: [atPractice];
+     FarnswthAllowed: False;
      ExchType1: etRST;
      ExchType2: etJaPref;
      ExchFieldEditable: True;
@@ -213,6 +223,7 @@ const
     (Name: 'JARL ACAG';
      Key: 'Acag';
      Activities: [atPractice];
+     FarnswthAllowed: False;
      ExchType1: etRST;
      ExchType2: etJaCity;
      ExchFieldEditable: True;
@@ -223,6 +234,7 @@ const
     (Name: 'IARU HF';
      Key: 'IaruHf';
      Activities: [atPractice];
+     FarnswthAllowed: False;
      ExchType1: etRST;
      ExchType2: etGenericField;
      ExchCaptions: ('RST', 'Zone/Soc');
@@ -234,6 +246,7 @@ const
     (Name: 'ARRL Sweepstakes';
      Key: 'SSCW';
      Activities: [atPractice];
+     FarnswthAllowed: False;
      ExchType1: etSSNrPrecedence;   // full exchange info is entered via Exch2; or my serial number (sent)
      ExchType2: etSSCheckSection;
      ExchFieldEditable: True;
@@ -295,6 +308,8 @@ var
   MonLevel: integer;
 
   Duration: integer = 30;
+  Durations: array[0..2] of integer = (30, 7, 60); // 0=Practice, 1=Training, 2=Competition
+
   RunMode: TRunMode = rmPileUp;      // was rmStop  (K6OK)
   DefaultRunMode: TRunMode = rmPileUp;
   pgmState: TPgmState = psStopped;      // (K6OK)
@@ -302,7 +317,8 @@ var
   CompDuration: integer = 60;
 
   SaveWav: boolean = false;
-  FarnsworthCharRate: integer = 25;
+
+
   AllStationsWpmS: integer = 0;      // force all stations to this Wpm
   CallsFromKeyer: boolean = false;
   F8: string = '';
@@ -323,11 +339,13 @@ var
   SimContestTrain: TSimContest = scWpx;
   DurationTrain: integer = 7;
   WpmTrain: integer = 22;
+  CpmTrain: integer = 22;
   rdoTrain3U: boolean = True;
   rdoTrain3W: boolean = False;
   rdoTrain4C: boolean = False;
   rdoTrain5C: boolean = False;
-
+  rdoTrain45Mix: boolean = False;
+  FarnsworthEnabled: boolean = False;
 
 
 procedure FromIni(cb : TErrMessageCallback);
@@ -371,6 +389,7 @@ end;
 procedure FromIni(cb : TErrMessageCallback);
 var
   V: integer;
+  iTrnCon: integer;
   C: PContestDefinition;
   SC: TSimContest;
   KeyName: String;
@@ -471,7 +490,6 @@ begin
       //MainForm.UpdSerialNRCustomRange(SerialNRSettings[snCustomRange].RangeStr);
       //MainForm.UpdSerialNR(ReadInteger(SEC_STN, 'SerialNR', Ord(SerialNR)));
 
-      Wpm := ReadInteger(SEC_STN, 'Wpm', Wpm);
       Qsk := ReadBool(SEC_STN, 'Qsk', Qsk);
       CallsFromKeyer := ReadBool(SEC_STN, 'CallsFromKeyer', CallsFromKeyer);
       GetWpmUsesGaussian := ReadBool(SEC_STN, 'GetWpmUsesGaussian', GetWpmUsesGaussian);
@@ -486,10 +504,17 @@ begin
       MainForm.CheckBox6.Checked := ReadBool(SEC_BND, 'Lids', Lids);
       MainForm.ReadCheckBoxes;
 
-      Duration := ReadInteger(SEC_TST, 'Duration', Duration);
+      //Duration := ReadInteger(SEC_TST, 'Duration', Duration);
+      case CurrentActivity of
+        atPractice: Duration := ReadInteger(SEC_TST, 'DurationPrac', Durations[0]);
+        atTraining: Duration := ReadInteger(SEC_TST, 'DurationTrain', Durations[1]);
+        atCompetition: Duration := ReadInteger(SEC_TST, 'DurationComp', Durations[2]);
+        else Duration := 30;
+      end;
       MainForm.SpinEdit2.Value := Duration;
+
       HiScore := ReadInteger(SEC_TST, 'HiScore', HiScore);
-      CompDuration := Max(1, Min(60, ReadInteger(SEC_TST, 'CompetitionDuration', CompDuration)));
+      CompDuration := Max(1, Min(60, ReadInteger(SEC_TST, 'CompetitionDuration', CompDuration)));  // <-- Duration[2] ?
 
       WebServer := ReadString(SEC_SYS, 'WebServer', DEFAULTWEBSERVER);
       SubmitHiScoreURL := ReadString(SEC_SYS, 'SubmitHiScoreURL', '');
@@ -515,7 +540,6 @@ begin
       SaveWav := ReadBool(SEC_STN, 'SaveWav', SaveWav);
 
       // [Settings]
-      FarnsworthCharRate := ReadInteger(SEC_SET, 'FarnsworthCharacterRate', FarnsworthCharRate);
       WpmStepRate := Max(1, Min(20, ReadInteger(SEC_SET, 'WpmStepRate', WpmStepRate)));
       RitStepIncr := ReadInteger(SEC_SET, 'RitStepIncr', RitStepIncr);
       RitStepIncr := Max(-500, Min(500, RitStepIncr));
@@ -530,16 +554,24 @@ begin
       end;
 
       // [Training]
-      if ReadInteger(SEC_TRN, 'SimContestTrain', 0) = 0 then
+      iTrnCon := ReadInteger(SEC_TRN, 'SimContestTrain', 0);
+      case iTrnCon of
+        0: SimContestTrain := scWpx;
+        1: SimContestTrain := scCwt;
+        2: SimContestTrain := scSst;
+      else
         SimContestTrain := scWpx;
-      if ReadInteger(SEC_TRN, 'SimContestTrain', 0) = 1 then
-        SimContestTrain := scCwt;
+      end;
+
       DurationTrain := ReadInteger(SEC_TRN, 'DurationTrain', DurationTrain);
       WpmTrain := ReadInteger(SEC_TRN, 'WpmTrain', WpmTrain);
+      CpmTrain :=  ReadInteger(SEC_TRN, 'CpmTrain', CpmTrain);
       rdoTrain3U := ReadBool(SEC_TRN, 'rdoTrain3U', rdoTrain3U);
       rdoTrain3W := ReadBool(SEC_TRN, 'rdoTrain3W', rdoTrain3W);
       rdoTrain4C := ReadBool(SEC_TRN, 'rdoTrain4C', rdoTrain4C);
       rdoTrain5C := ReadBool(SEC_TRN, 'rdoTrain5C', rdoTrain5C);
+      rdoTrain45Mix := ReadBool(SEC_TRN, 'rdoTrain45Mix', rdoTrain45Mix);
+      FarnsworthEnabled := ReadBool(SEC_TRN, 'FarnsworthEnabled', False);
 
       // [Debug]
       DebugExchSettings := ReadBool(SEC_DBG, 'DebugExchSettings', DebugExchSettings);
@@ -583,7 +615,7 @@ begin
       WriteString(SEC_STN, 'ITUZone', ITUZone);
       WriteInteger(SEC_STN, 'Pitch', MainForm.cmboCWPitch.ItemIndex);
       WriteInteger(SEC_STN, 'BandWidth', MainForm.cmboRXBW.ItemIndex);
-      WriteInteger(SEC_STN, 'Wpm', Wpm);
+      //WriteInteger(SEC_STN, 'Wpm', Wpm);
       WriteBool(SEC_STN, 'Qsk', Qsk);
 
       {
@@ -621,7 +653,11 @@ begin
       WriteBool(SEC_BND, 'Flutter', Flutter);
       WriteBool(SEC_BND, 'Lids', Lids);
 
-      WriteInteger(SEC_TST, 'Duration', Duration);
+      //WriteInteger(SEC_TST, 'Duration', Duration);
+      WriteInteger(SEC_TST, 'DurationPrac', Durations[0]);
+      WriteInteger(SEC_TST, 'DurationTrain', Durations[1]);
+      WriteInteger(SEC_TST, 'DurationComp', Durations[2]);
+
       WriteInteger(SEC_TST, 'HiScore', HiScore);
       WriteInteger(SEC_TST, 'CompetitionDuration', CompDuration);
 
@@ -631,7 +667,6 @@ begin
       WriteBool(SEC_STN, 'SaveWav', SaveWav);
 
       // [Settings]
-      WriteInteger(SEC_SET, 'FarnsworthCharacterRate', FarnsworthCharRate);
       WriteInteger(SEC_SET, 'WpmStepRate', WpmStepRate);
       WriteInteger(SEC_SET, 'RitStepIncr', RitStepIncr);
       WriteInteger(SEC_SET, 'ShowCheckSection', ShowCheckSection);
@@ -648,10 +683,13 @@ begin
       WriteInteger(SEC_TRN, 'SimContestTrain', Ord(SimContestTrain));
       WriteInteger(SEC_TRN, 'DurationTrain', DurationTrain);
       WriteInteger(SEC_TRN, 'WpmTrain', WpmTrain);
+      WriteInteger(SEC_TRN, 'CpmTrain', CpmTrain);
       WriteBool(SEC_TRN, 'rdoTrain3U', rdoTrain3U);
       WriteBool(SEC_TRN, 'rdoTrain3W', rdoTrain3W);
       WriteBool(SEC_TRN, 'rdoTrain4C', rdoTrain4C);
       WriteBool(SEC_TRN, 'rdoTrain5C', rdoTrain5C);
+      WriteBool(SEC_TRN, 'rdoTrain45Mix', rdoTrain45Mix);
+      WriteBool(SEC_TRN, 'FarnsworthEnabled', FarnsworthEnabled);
 
       // Main form size and position             (K6OK)
       WriteInteger(SEC_SYS,'fmTop',MainForm.Top);

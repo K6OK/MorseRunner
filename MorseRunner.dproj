@@ -2,7 +2,7 @@
     <PropertyGroup>
         <ProjectGuid>{C110DC42-2814-474C-BF8A-873A68F27692}</ProjectGuid>
         <MainSource>MorseRunner.dpr</MainSource>
-        <Config Condition="'$(Config)'==''">Release</Config>
+        <Config Condition="'$(Config)'==''">Debug</Config>
         <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
         <ProjectVersion>19.5</ProjectVersion>
         <FrameworkType>VCL</FrameworkType>
@@ -184,10 +184,6 @@
         <DCCReference Include="History.pas"/>
         <DCCReference Include="HistoryHelp.pas">
             <Form>frmHistoryHelp</Form>
-            <FormType>dfm</FormType>
-        </DCCReference>
-        <DCCReference Include="Training.pas">
-            <Form>frmTraining</Form>
             <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="TrainingFuncs.pas"/>

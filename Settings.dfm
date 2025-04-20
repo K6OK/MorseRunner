@@ -26,9 +26,10 @@ object frmSettings: TfrmSettings
     Font.Name = 'Segoe UI'
     Font.Style = []
     ParentFont = False
+    Style = tsFlatButtons
     TabOrder = 0
-    ExplicitWidth = 628
-    ExplicitHeight = 392
+    ExplicitWidth = 620
+    ExplicitHeight = 390
     object tabGeneral: TTabSheet
       Caption = 'General'
       object boxMyStation: TGroupBox
@@ -365,11 +366,11 @@ object frmSettings: TfrmSettings
       end
       object boxCWSettings: TGroupBox
         Left = 3
-        Top = 30
+        Top = 31
         Width = 350
         Height = 247
         Caption = 'CW Settings'
-        Color = clWhite
+        Color = clBtnFace
         ParentBackground = False
         ParentColor = False
         TabOrder = 0
@@ -569,7 +570,7 @@ object frmSettings: TfrmSettings
       object boxBandCondx: TGroupBox
         Left = 368
         Top = 29
-        Width = 249
+        Width = 240
         Height = 115
         Caption = ' Band Conditions '
         TabOrder = 1
@@ -697,7 +698,7 @@ object frmSettings: TfrmSettings
       object radioGroupSN: TRadioGroup
         Left = 368
         Top = 152
-        Width = 249
+        Width = 240
         Height = 125
         Caption = ' Serial Numbers '
         TabOrder = 2
@@ -748,15 +749,15 @@ object frmSettings: TfrmSettings
       Caption = 'Training'
       ImageIndex = 3
       object Label7: TLabel
-        Left = 264
-        Top = 68
+        Left = 320
+        Top = 27
         Width = 44
         Height = 17
         Caption = 'Contest'
       end
       object Label4: TLabel
-        Left = 488
-        Top = 45
+        Left = 544
+        Top = 4
         Width = 46
         Height = 15
         Caption = 'Duration'
@@ -768,22 +769,22 @@ object frmSettings: TfrmSettings
         ParentFont = False
       end
       object Label6: TLabel
-        Left = 197
-        Top = 8
+        Left = 29
+        Top = 10
         Width = 199
         Height = 17
         Caption = 'Default settings for Training mode'
       end
       object boxTrainCWSpd: TGroupBox
-        Left = 85
-        Top = 104
-        Width = 449
-        Height = 81
-        Caption = ' CW Speed '
+        Left = 29
+        Top = 55
+        Width = 561
+        Height = 138
+        Caption = ' CW Speed and Spacing '
         TabOrder = 0
         object lblTrainWPM: TLabel
-          Left = 50
-          Top = 33
+          Left = 94
+          Top = 23
           Width = 30
           Height = 15
           Caption = 'WPM'
@@ -794,9 +795,9 @@ object frmSettings: TfrmSettings
           Font.Style = [fsBold]
           ParentFont = False
         end
-        object lblTrainCWSpd: TLabel
-          Left = 100
-          Top = 31
+        object lblTrainWPMSpd: TLabel
+          Left = 130
+          Top = 21
           Width = 14
           Height = 17
           Alignment = taRightJustify
@@ -808,9 +809,101 @@ object frmSettings: TfrmSettings
           Font.Style = [fsBold]
           ParentFont = False
         end
-        object trkTrainCW: TTrackBar
+        object lblTrainCPMSpd: TLabel
+          Left = 130
+          Top = 73
+          Width = 14
+          Height = 17
+          Alignment = taRightJustify
+          Caption = '22'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Segoe UI'
+          Font.Style = []
+          ParentFont = False
+        end
+        object lblCPM: TLabel
+          Left = 94
+          Top = 75
+          Width = 26
+          Height = 15
+          Caption = 'CPM'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
+          Font.Style = []
+          ParentFont = False
+        end
+        object lblCPMLong: TLabel
+          Left = 235
+          Top = 100
+          Width = 117
+          Height = 15
+          Caption = 'Characters Per Minute'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
+          Font.Style = []
+          ParentFont = False
+        end
+        object Label13: TLabel
+          Left = 210
+          Top = 115
+          Width = 180
+          Height = 13
+          Caption = 'Note: CPM Must Be Higher Than WPM'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Segoe UI'
+          Font.Style = [fsItalic]
+          ParentFont = False
+        end
+        object lblWPMLong: TLabel
+          Left = 245
+          Top = 51
+          Width = 95
+          Height = 15
+          Caption = 'Words Per Minute'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
+          Font.Style = []
+          ParentFont = False
+        end
+        object lblFarnsw: TLabel
+          Left = 38
+          Top = 56
+          Width = 104
+          Height = 15
+          Caption = 'Farnsworth Spacing'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
+          Font.Style = []
+          ParentFont = False
+        end
+        object Label9: TLabel
+          Left = 436
+          Top = 94
+          Width = 59
+          Height = 15
+          Caption = 'Farnsworth'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -12
+          Font.Name = 'Segoe UI'
+          Font.Style = []
+          ParentFont = False
+        end
+        object trkTrainWPM: TTrackBar
           Left = 158
-          Top = 33
+          Top = 21
           Width = 272
           Height = 45
           Max = 25
@@ -819,19 +912,39 @@ object frmSettings: TfrmSettings
           ShowSelRange = False
           TabOrder = 0
           TabStop = False
-          OnChange = trkTrainCWChange
+          OnChange = trkTrainWPMChange
+        end
+        object trkTrainCPM: TTrackBar
+          Left = 158
+          Top = 72
+          Width = 272
+          Height = 45
+          Max = 25
+          Min = 10
+          Position = 22
+          ShowSelRange = False
+          TabOrder = 1
+          TabStop = False
+          OnChange = trkTrainCPMChange
+        end
+        object toggleFarnsworth: TToggleSwitch
+          Left = 436
+          Top = 72
+          Width = 74
+          Height = 20
+          TabOrder = 2
         end
       end
       object GroupBox1: TGroupBox
-        Left = 85
-        Top = 200
-        Width = 449
+        Left = 29
+        Top = 199
+        Width = 561
         Height = 137
         Caption = ' Call Signs of Calling Stations '
         TabOrder = 1
         object lblTrainCall1: TLabel
           Left = 312
-          Top = 32
+          Top = 25
           Width = 27
           Height = 17
           Caption = 'WPX'
@@ -844,7 +957,7 @@ object frmSettings: TfrmSettings
         end
         object Label1: TLabel
           Left = 312
-          Top = 55
+          Top = 45
           Width = 27
           Height = 17
           Caption = 'WPX'
@@ -856,11 +969,11 @@ object frmSettings: TfrmSettings
           ParentFont = False
         end
         object Label2: TLabel
-          Left = 312
-          Top = 78
-          Width = 61
+          Left = 311
+          Top = 65
+          Width = 87
           Height = 17
-          Caption = 'WPX, CWT'
+          Caption = 'WPX, CWT, SST'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -13
@@ -870,10 +983,23 @@ object frmSettings: TfrmSettings
         end
         object Label3: TLabel
           Left = 312
-          Top = 101
-          Width = 61
+          Top = 85
+          Width = 87
           Height = 17
-          Caption = 'WPX, CWT'
+          Caption = 'WPX, CWT, SST'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Segoe UI'
+          Font.Style = [fsItalic]
+          ParentFont = False
+        end
+        object Label12: TLabel
+          Left = 312
+          Top = 105
+          Width = 87
+          Height = 17
+          Caption = 'WPX, CWT, SST'
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -13
@@ -883,7 +1009,7 @@ object frmSettings: TfrmSettings
         end
         object radioSetTrn3CharUSA: TRadioButton
           Left = 50
-          Top = 34
+          Top = 25
           Width = 256
           Height = 17
           Caption = '3 Characters, USA (K8P, N4A, W7W, etc)'
@@ -894,7 +1020,7 @@ object frmSettings: TfrmSettings
         end
         object radioSetTrn3CharWrld: TRadioButton
           Left = 50
-          Top = 57
+          Top = 45
           Width = 241
           Height = 17
           Caption = '3 Characters, World (F6R, B4G, etc)'
@@ -903,7 +1029,7 @@ object frmSettings: TfrmSettings
         end
         object radioSetTrn4Char: TRadioButton
           Left = 50
-          Top = 81
+          Top = 65
           Width = 241
           Height = 17
           Caption = '4 Characters Max'
@@ -912,17 +1038,26 @@ object frmSettings: TfrmSettings
         end
         object radioSetTrn5Char: TRadioButton
           Left = 50
-          Top = 104
+          Top = 85
           Width = 193
           Height = 17
           Caption = '5 Characters Max'
           TabOrder = 3
           OnClick = SettingsFormDirty
         end
+        object radioSetTrn45Mixed: TRadioButton
+          Left = 50
+          Top = 105
+          Width = 193
+          Height = 17
+          Caption = 'Mix of 4 and 5 Characters'
+          TabOrder = 4
+          OnClick = SettingsFormDirty
+        end
       end
       object cmboTrainSettCont: TComboBox
-        Left = 314
-        Top = 66
+        Left = 370
+        Top = 25
         Width = 169
         Height = 25
         Style = csDropDownList
@@ -942,8 +1077,8 @@ object frmSettings: TfrmSettings
           'CWOPS CWT')
       end
       object spinTrainSettDur: TSpinEdit
-        Left = 489
-        Top = 66
+        Left = 545
+        Top = 25
         Width = 45
         Height = 24
         TabStop = False
@@ -964,49 +1099,6 @@ object frmSettings: TfrmSettings
     object TabHistory: TTabSheet
       Caption = 'History Files'
       ImageIndex = 3
-      object spdbtnHistGridRowUp: TSpeedButton
-        Left = 508
-        Top = 30
-        Width = 50
-        Height = 22
-        Caption = '5'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -27
-        Font.Name = 'Webdings'
-        Font.Style = []
-        ParentFont = False
-        OnClick = spdbtnHistGridRowUpClick
-      end
-      object spdbtnHistGridRowDown: TSpeedButton
-        Left = 563
-        Top = 30
-        Width = 50
-        Height = 22
-        Caption = '6'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -27
-        Font.Name = 'Webdings'
-        Font.Style = []
-        ParentFont = False
-        OnClick = spdbtnHistGridRowDownClick
-      end
-      object lblHistSelRow: TLabel
-        Left = 531
-        Top = 58
-        Width = 56
-        Height = 13
-        Alignment = taCenter
-        Caption = 'Select Row'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -11
-        Font.Name = 'Segoe UI'
-        Font.Style = []
-        ParentFont = False
-        WordWrap = True
-      end
       object StringGrid1: TStringGrid
         Left = 3
         Top = 11
@@ -1015,6 +1107,7 @@ object frmSettings: TfrmSettings
         BevelEdges = []
         ColCount = 3
         DefaultRowHeight = 20
+        FixedCols = 0
         RowCount = 13
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -1028,7 +1121,7 @@ object frmSettings: TfrmSettings
       end
       object btnChangeHist: TButton
         Left = 508
-        Top = 112
+        Top = 24
         Width = 105
         Height = 25
         Caption = 'Select New File'
@@ -1037,7 +1130,7 @@ object frmSettings: TfrmSettings
       end
       object btnHelpHistory: TButton
         Left = 508
-        Top = 152
+        Top = 64
         Width = 105
         Height = 25
         Caption = 'Help'
@@ -1053,6 +1146,8 @@ object frmSettings: TfrmSettings
     Height = 50
     Align = alBottom
     TabOrder = 1
+    ExplicitTop = 390
+    ExplicitWidth = 620
     object btnSettingsCancel: TButton
       Left = 208
       Top = 16

@@ -1258,7 +1258,7 @@ var
   T, D: Single;
 begin
   //T := BlocksToSeconds(Tst.BlockNumber) / 86400;  //(K6OK)
-  T := ElapsedTime;                                 //(K6OK)
+  T := MainForm.ElapsedTime;                        //(K6OK)
   if T = 0 then Exit;
   D := Min(5/1440, T);
 

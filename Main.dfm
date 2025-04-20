@@ -6330,7 +6330,7 @@ object MainForm: TMainForm
     ExplicitLeft = 576
     ExplicitHeight = 315
     object spdbtnRun: TSpeedButton
-      Left = 52
+      Left = 54
       Top = 273
       Width = 32
       Height = 32
@@ -6411,6 +6411,20 @@ object MainForm: TMainForm
       Font.Name = 'Segoe UI'
       Font.Style = []
       ParentFont = False
+    end
+    object lblTrainingMode: TLabel
+      Left = 60
+      Top = 210
+      Width = 96
+      Height = 15
+      Caption = 'TRAINING MODE'
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clNavy
+      Font.Height = -12
+      Font.Name = 'Segoe UI'
+      Font.Style = [fsBold]
+      ParentFont = False
+      Visible = False
     end
     object GroupBox3: TGroupBox
       Left = 6
@@ -7045,6 +7059,7 @@ object MainForm: TMainForm
       ParentFont = False
       TabOrder = 4
       TabStop = False
+      OnEnter = comboActivityEnter
       OnSelect = comboActivitySelect
       Items.Strings = (
         'Practice'

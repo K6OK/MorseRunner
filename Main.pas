@@ -158,6 +158,7 @@ type
     Timer1: TTimer;
     N3: TMenuItem;
     labelStatus: TLabel;
+    lblTrainingMode: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure AlSoundOut1BufAvailable(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -239,7 +240,8 @@ type
     procedure comboModeRefresh;
     procedure SpeedButton12Click(Sender: TObject);
     procedure mnuSettingsClick(Sender: TObject);  // (K6OK)
-    procedure SpdBtnVisibility(valu: integer);  // (K6OK)
+    procedure SpdBtnVisibility(valu: integer);
+    procedure comboActivityEnter(Sender: TObject);  // (K6OK)
 
   private
     MustAdvance: boolean;       // Controls when Exchange fields advance
@@ -248,11 +250,6 @@ type
     CWSpeedDirty: boolean;      // SetWpm is called after CW Speed edits
     RitLocal: integer;          // tracks incremented RIT Value
 
-    PauseStartTime: TDateTime;
-    PausedTime: TDateTime;
-
-
-
     function CreateContest(AContestId : TSimContest) : TContest;
     procedure ConfigureExchangeFields;
     procedure SetMyExch1(const AExchType: TExchange1Type; const Avalue: string);
@@ -260,7 +257,6 @@ type
     procedure ProcessSpace;
     procedure SendMsg(AMsg: TStationMessage);
     procedure ProcessEnter;
-    procedure EnableCtl(Ctl: TWinControl; AEnable: boolean);
     procedure IncRit(dF: integer);
     procedure UpdateRitIndicator;
     procedure DecSpeed;
@@ -277,6 +273,12 @@ type
     // This value is set by calling the virtual TContest.GetSentExchTypes()
     // function. See TArrlDx.GetExchangeTypes() for additional information.
     RecvExchTypes: TExchTypes;
+
+    PauseStartTime: TDateTime;
+    PausedTime: TDateTime;
+    StopTime: TDateTime;
+    StartTime: TDateTime;
+    ElapsedTime: TDateTime;
 
     procedure Run(Value: TRunMode; valuState: TPgmState);  // (K6OK)
     procedure WipeBoxes;
@@ -299,6 +301,7 @@ type
     procedure UpdCWMaxRxSpeed(Maxspd: integer);
     procedure ClientHTTP1Redirect(Sender: TObject; var dest: string;
       var NumRedirect: Integer; var Handled: Boolean; var VMethod: string);
+    procedure EnableCtl(Ctl: TWinControl; AEnable: boolean);
 
     
   end;
@@ -318,14 +321,15 @@ var
   SaveEdit3Left: integer = 0;
   SaveEdit3Width: integer = 0;
 
+  // initialize activity history tracker
+  ActivityHistory: array[0..1] of TActivityType = (atPractice, atPractice);
+
   { debug switches - set via .INI file or compile-time switches (above) }
   BDebugExchSettings: boolean;    // display parsed Exchange field settings
   BDebugCwDecoder: boolean;       // enables CW stream to status bar
   BDebugGhosting: boolean;        // enabled DxStation ghosting issues
 
-  StartTime: TDateTime;           // (K6OK)
-  StopTime: TDateTime;
-  ElapsedTime: TDateTime;
+
 
 implementation
 
@@ -371,6 +375,10 @@ begin
   frmSplash.DoSplash;
   frmSplash.TimerSplash.Enabled := True;
   // end splash
+
+  // make atPractice the default activity on startup
+  Ini.CurrentActivity := atPractice;
+  comboActivity.ItemIndex := 0;
 
   Randomize;
 
@@ -432,11 +440,6 @@ begin
 
   // start the TTimer for timekeeping (K6OK)
   Timer1.Enabled := True;
-
-  // temporary
-  TrainingFuncs.PracticeStashDurWpm[0] := Ini.Wpm;
-  TrainingFuncs.PracticeStashDurWpm[1] := Ini.Duration;
-
 
 end;
 
@@ -1109,12 +1112,10 @@ begin
   // create new contest
   Tst := CreateContest(AContestNum);
 
-  // load original or Farnsworth Keyer
-  FreeAndNil(Keyer);
-  if SimContest in [scSST] then
-    Keyer := TFarnsKeyer.Create(DEFAULTRATE, Ini.BufSize)
-  else
-    Keyer := TKeyer.Create(DEFAULTRATE, Ini.BufSize);
+  // Load standard keyer. Farnsworth keyer handled by TrainingFuncs
+  // Farnsworth not a supported choice from Main form
+  FreeAndNil(Keyer);      // Make sure Farnsworth not loaded
+  Keyer := TKeyer.Create(DEFAULTRATE, Ini.BufSize);
 
   // the following will initialize simulation-specific data owned by contest.
   // (moved here from Ini.FromIni)
@@ -1605,9 +1606,9 @@ begin
 
   // populate Contest droplist using contests associated with current activity
   for C in ContestDefinitions do
-    if ((C.Activities = []) and (CurrentActivity = atPractice)) or
-       (CurrentActivity in C.Activities) then
-      SimContestCombo.Items.Add(C.Name);
+  begin
+    if CurrentActivity in C.Activities then SimContestCombo.Items.Add(C.Name);
+  end;
 
   SimContestCombo.Sorted:= True;
 
@@ -1639,23 +1640,37 @@ begin
 end;
 
 
+procedure TMainForm.comboActivityEnter(Sender: TObject);
+begin
+  // User is contemplating an Activity change
+  // Save the states of Act, Cont, Mode and Exch prior to change
+  // Useful when entering or exiting Training mode
+  TrainFuncs.BackupPriorActivitySettings;
+end;
+
 procedure TMainForm.comboActivitySelect(Sender: TObject);
 begin
-  // If coming from Training mode then
-  // restore Ini.Wpm, Duration back to Practice values
-  if Ini.CurrentActivity = atTraining then
+  // Update activity history tracker
+  ActivityHistory[1] := ActivityHistory[0];
+  ActivityHistory[0] := TActivityType(comboActivity.ItemIndex);
+
+  // If coming out of Training, restore control values back to normal
+  if ActivityHistory[1] = atTraining then
+    TrainFuncs.RestorePriorActivitySettings;
+
+  // If selected activity <> Training
+  if not (comboActivity.ItemIndex = 1) then
   begin
-    Ini.Wpm := TrainingFuncs.PracticeStashDurWpm[0];
-    spinCWSpeed.Value := Ini.Wpm;
-    Ini.Duration := TrainingFuncs.PracticeStashDurWpm[1];
-    SpinEdit2.Value := Ini.Duration;
-    Ini.DefaultRunMode := rmPileup;
+    Ini.CurrentActivity := TActivityType(comboActivity.ItemIndex);
+    GroupBox3.Visible := True;
+    lblTrainingMode.Visible := False;
+    Repaint;
+  end
+  else
+  begin
+    Ini.CurrentActivity := TActivityType(comboActivity.ItemIndex);
+    TrainFuncs.RunTrainSession;  // If selected activity = Training
   end;
-  //Now update the current activity
-  Ini.CurrentActivity := TActivityType(comboActivity.ItemIndex);
-  SimContestComboRefresh;
-  comboModeRefresh;
-  if Ini.CurrentActivity = atTraining then TrainFuncs.InitiateTrainSession;
 
 end;
 
@@ -1732,6 +1747,11 @@ end;
 procedure TMainForm.SpinEdit2Change(Sender: TObject);
 begin
   Ini.Duration := SpinEdit2.Value;
+  case CurrentActivity of
+    atPractice: Durations[0] := Ini.Duration;
+    atTraining: Durations[1] := Ini.Duration;
+    atCompetition: Durations[2] := Ini.Duration;
+  end;
   Histo.ReCalc(Ini.Duration);
 end;
 
@@ -2124,14 +2144,7 @@ begin
   end;
   labelStatus.Caption := 'Status: Running';
   SpdBtnVisibility(1);
-  if not (Ini.CurrentActivity = atTraining) then
-  begin
-    Run(Ini.DefaultRunMode, Ini.pgmState)
-  end
-  else
-  begin
-    TrainFuncs.InitiateTrainSession;
-  end;
+  Run(Ini.DefaultRunMode, Ini.pgmState);
 end;
 
 procedure TMainForm.spdbtnPauseClick(Sender: TObject);

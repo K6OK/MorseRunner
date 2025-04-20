@@ -187,8 +187,10 @@ begin
     Result := Ini.AllStationsWpmS;
 
   // Allow Farnsworth timing for certain contests
-  if Tst.IsFarnsworthAllowed() and (Result < Ini.FarnsworthCharRate) then
-    AWpmC := Ini.FarnsworthCharRate
+  if (ActiveContest.FarnswthAllowed and Ini.FarnsworthEnabled and
+     (Result < Ini.CpmTrain))
+  then
+    AWpmC := Ini.CpmTrain
   else
     AWpmC := Result;
 end;

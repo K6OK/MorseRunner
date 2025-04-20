@@ -87,15 +87,12 @@ type
     radioSN01: TRadioButton;
     radioSN02: TRadioButton;
     radioSN03: TRadioButton;
-    spdbtnHistGridRowUp: TSpeedButton;
-    spdbtnHistGridRowDown: TSpeedButton;
-    lblHistSelRow: TLabel;
     btnHelpHistory: TButton;
     tabTrain: TTabSheet;
     boxTrainCWSpd: TGroupBox;
-    trkTrainCW: TTrackBar;
+    trkTrainWPM: TTrackBar;
     lblTrainWPM: TLabel;
-    lblTrainCWSpd: TLabel;
+    lblTrainWPMSpd: TLabel;
     GroupBox1: TGroupBox;
     radioSetTrn3CharUSA: TRadioButton;
     radioSetTrn3CharWrld: TRadioButton;
@@ -111,6 +108,17 @@ type
     Label4: TLabel;
     Label6: TLabel;
     Label8: TLabel;
+    trkTrainCPM: TTrackBar;
+    toggleFarnsworth: TToggleSwitch;
+    lblTrainCPMSpd: TLabel;
+    lblCPM: TLabel;
+    lblCPMLong: TLabel;
+    Label13: TLabel;
+    lblWPMLong: TLabel;
+    lblFarnsw: TLabel;
+    Label9: TLabel;
+    radioSetTrn45Mixed: TRadioButton;
+    Label12: TLabel;
     procedure LoadtheForm(Sender: TObject);
     procedure radioSN03Click(Sender: TObject);
     procedure btnSettingsSaveClick(Sender: TObject);
@@ -123,12 +131,11 @@ type
     procedure trkBarFasterSpeedTracking(Sender: TObject);
     procedure trkBarSlowerSpeedTracking(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure spdbtnHistGridRowDownClick(Sender: TObject);
-    procedure spdbtnHistGridRowUpClick(Sender: TObject);
     procedure btnChangeHistClick(Sender: TObject);
     procedure btnHelpHistoryClick(Sender: TObject);
     procedure cmboTrainSettContChange(Sender: TObject);
-    procedure trkTrainCWChange(Sender: TObject);
+    procedure trkTrainWPMChange(Sender: TObject);
+    procedure trkTrainCPMChange(Sender: TObject);
 
 
   private
@@ -197,6 +204,7 @@ begin
     Ini.SimContestTrain := tmpContestTrain;
     Ini.DurationTrain := tmpDurationTrain;
     Ini.WpmTrain := tmpWpmTrain;
+    Ini.CpmTrain := tmpCpmTrain;
     Ini.rdoTrain3U := tmpTrain3U;
     Ini.rdoTrain3W := tmpTrain3W;
     Ini.rdoTrain4C := tmpTrain4C;
@@ -294,26 +302,6 @@ begin
   SettgsFuncs.WriteDirtySettingsToRecord(Sender);
 end;
 
-//History string grid row cursor up/down
-procedure TfrmSettings.spdbtnHistGridRowDownClick(Sender: TObject);
-var
-  currow : integer;
-begin
-  currow := StringGrid1.Row;
-  if (currow < StringGrid1.RowCount - 2) then
-    StringGrid1.Row := currow + 1 else
-    StringGrid1.Row := StringGrid1.RowCount - 1;
-end;
-
-procedure TfrmSettings.spdbtnHistGridRowUpClick(Sender: TObject);
-var
-  currow : integer;
-begin
-  currow := StringGrid1.Row;
-  if (currow > 2) then StringGrid1.Row := StringGrid1.Row -1 else
-    StringGrid1.Row := 1;
-end;
-
 //History: select a replacement file
 procedure TfrmSettings.btnChangeHistClick(Sender: TObject);
 begin
@@ -329,31 +317,61 @@ end;
 
 //Training
 procedure TfrmSettings.cmboTrainSettContChange(Sender: TObject);
+var
+  i: integer;
 begin
+  i := cmboTrainSettCont.ItemIndex;
+  case i of
+    0:
+    begin
+      radioSetTrn3CharUSA.Enabled := True;
+      radioSetTrn3CharWrld.Enabled := True;
+      radioSetTrn4Char.Enabled := True;
+      radioSetTrn4Char.Enabled := True;
+      radioSetTrn45Mixed.Enabled := True;
+    end;
+    1:
+    begin
+      radioSetTrn3CharUSA.Enabled := False;
+      radioSetTrn3CharWrld.Enabled := False;
+      radioSetTrn4Char.Enabled := True;
+      radioSetTrn4Char.Enabled := True;
+      radioSetTrn45Mixed.Enabled := True;
+    end;
+    2:
+    begin
+      radioSetTrn3CharUSA.Enabled := False;
+      radioSetTrn3CharWrld.Enabled := False;
+      radioSetTrn4Char.Enabled := True;
+      radioSetTrn4Char.Enabled := True;
+      radioSetTrn45Mixed.Enabled := True;
+    end;
+  else
+    begin end;  //do nothing
+  end;
+
   if cmboTrainSettCont.ItemIndex = 0 then
   begin
-    radioSetTrn3CharUSA.Enabled := True;
-    radioSetTrn3CharWrld.Enabled := True;
-    radioSetTrn4Char.Enabled := True;
-    radioSetTrn4Char.Enabled := True;
+
   end;
   if cmboTrainSettCont.ItemIndex = 1 then
   begin
-    radioSetTrn3CharUSA.Enabled := False;
-    radioSetTrn3CharWrld.Enabled := False;
-    radioSetTrn4Char.Enabled := True;
-    radioSetTrn4Char.Enabled := True;
+
   end;
   SettingsFormDirty(Sender);
 end;
 
-procedure TfrmSettings.trkTrainCWChange(Sender: TObject);
+procedure TfrmSettings.trkTrainWPMChange(Sender: TObject);
 begin
-  lblTrainCWSpd.Caption := inttoStr(trkTrainCW.Position);
+  lblTrainWpmSpd.Caption := inttoStr(trkTrainWPM.Position);
   SettingsFormDirty(Sender);
 end;
 
-
+procedure TfrmSettings.trkTrainCPMChange(Sender: TObject);
+begin
+  lblTrainCpmSpd.Caption := inttoStr(trkTrainCPM.Position);
+  SettingsFormDirty(Sender);
+end;
 
 
 end.

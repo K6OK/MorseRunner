@@ -21,7 +21,7 @@ type
     procedure SwapFilters;
 
   protected
-    BFarnsworthEnabled : Boolean; // enables Farnsworth timing (e.g. SST Contest)
+    BFarnsworthEnabled : Boolean; // enables Farnsworth timing
 
     constructor Create;
     function IsReloadRequired(const AUserCallsign : String) : boolean;
@@ -30,6 +30,7 @@ type
       const Avalue: string) : Boolean;
 
   public
+
     BlockNumber: integer;
     Me: TMyStation;
     Stations: TStations;
@@ -58,7 +59,7 @@ type
     function OnContestPrepareToStart(const AUserCallsign: string;
       const ASentExchange : string) : Boolean; virtual;
     procedure SerialNrModeChanged; virtual;
-    function IsFarnsworthAllowed : Boolean;
+    //function IsFarnsworthAllowed : Boolean;
     function GetSentExchTypes(
       const AStationKind : TStationKind;
       const AMyCallsign : string) : TExchTypes;
@@ -133,8 +134,8 @@ begin
   Agc.AgcEnabled := true;
   NoActivityCnt :=0;
   LastLoadCallsign := '';
-  BFarnsworthEnabled := false;
-
+  //BFarnsworthEnabled := Ini.FarnsworthEnabled;
+  BFarnsworthEnabled := ActiveContest.FarnswthAllowed;
   Init;
 end;
 
@@ -157,7 +158,6 @@ begin
   Stations.Clear;
   BlockNumber := 0;
   LastLoadCallsign := '';
-  BFarnsworthEnabled := false;
 end;
 
 
@@ -184,11 +184,12 @@ end;
   Farnsworth timing is supported by certain contests only (initially the
   K1USN SST Contest). Derived contests will set BFarnworthEnabled in their
   TContest.Create() method.
-}
+
 function TContest.IsFarnsworthAllowed : Boolean;
 begin
   Result := BFarnsworthEnabled;
 end;
+}
 
 
 {
@@ -812,7 +813,7 @@ begin
   // If duration expired or psStop=True, end the simulation
   //if (BlocksToSeconds(BlockNumber) >= (Duration * 60)) or (Ini.pgmState = psStop) then
 
-  if ((ElapsedTime * 86400) >= (Duration * 60)) or (Ini.pgmState = psStopped) then     //(K6OK)
+  if ((MainForm.ElapsedTime * 86400) >= (Duration * 60)) or (Ini.pgmState = psStopped) then     //(K6OK)
       begin
     if RunMode = rmHst then
       begin

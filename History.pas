@@ -121,7 +121,7 @@ begin
       end;
     end;
     HistoryFuncs.SortTheStringGrid;
-    frmSettings.StringGrid1.Selection := TGridRect(Rect(1,1,2,1));
+    frmSettings.StringGrid1.Selection := TGridRect(Rect(0,1,2,1));
     conlist.Free;
     filelist.Free;
 end;
