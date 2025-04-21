@@ -21,6 +21,11 @@ type
     procedure SwapFilters;
 
   protected
+  const
+    STATION_ID_RATE = 3;  // send Station ID after 3 consecutive QSOs
+
+  var
+    QsoCountSinceStationID: Integer;  // QSOs since last CQ or Station ID
     BFarnsworthEnabled : Boolean; // enables Farnsworth timing
 
     constructor Create;
@@ -70,9 +75,11 @@ type
     function GetExchangeTypes(
       const AStationKind : TStationKind;
       const ARequestedMsgType : TRequestedMsgType;
-      const AStationCallsign : string) : TExchTypes; virtual;
+      const AStationCallsign : String;
+      const ARemoteCallsign : String) : TExchTypes; virtual;
     procedure SendMsg(const AStn: TStation; const AMsg: TStationMessage); virtual;
     procedure SendText(const AStn: TStation; const AMsg: string); virtual;
+    procedure ResetQsoState;
     procedure OnWipeBoxes; virtual;
     function OnExchangeEdit(const ACall, AExch1, AExch2: string;
        out AExchSummary: string; out AExchError: string) : Boolean; virtual;
@@ -90,6 +97,8 @@ type
     function GetAudio: TSingleArray;
     procedure OnMeFinishedSending;
     procedure OnMeStartedSending;
+    procedure OnSaveQsoComplete;
+    procedure OnStationIDSent;
   end;
 
 var
@@ -134,8 +143,10 @@ begin
   Agc.AgcEnabled := true;
   NoActivityCnt :=0;
   LastLoadCallsign := '';
+  QsoCountSinceStationID := 0;
   //BFarnsworthEnabled := Ini.FarnsworthEnabled;
   BFarnsworthEnabled := ActiveContest.FarnswthAllowed;
+
   Init;
 end;
 
@@ -158,6 +169,7 @@ begin
   Stations.Clear;
   BlockNumber := 0;
   LastLoadCallsign := '';
+  QsoCountSinceStationID := 0;
 end;
 
 
@@ -358,7 +370,7 @@ function TContest.GetSentExchTypes(
   const AStationKind : TStationKind;
   const AMyCallsign : string) : TExchTypes;
 begin
-  Result:= Self.GetExchangeTypes(AStationKind, mtSendMsg, AMyCallsign);
+  Result:= Self.GetExchangeTypes(AStationKind, mtSendMsg, AMyCallsign, '');
 end;
 
 
@@ -373,16 +385,17 @@ function TContest.GetRecvExchTypes(
   const ADxCallsign : string) : TExchTypes;
 begin
   if AStationKind = skMyStation then
-    Result:= Self.GetExchangeTypes(AStationKind, mtRecvMsg, AMyCallsign)
+    Result:= Self.GetExchangeTypes(AStationKind, mtRecvMsg, AMyCallsign, ADxCallsign)
   else
-    Result:= Self.GetExchangeTypes(AStationKind, mtRecvMsg, ADxCallsign);
+    Result:= Self.GetExchangeTypes(AStationKind, mtRecvMsg, ADxCallsign, AMyCallsign);
 end;
 
 
 function TContest.GetExchangeTypes(
   const AStationKind : TStationKind;
   const ARequestedMsgType : TRequestedMsgType;
-  const AStationCallsign : string) : TExchTypes;
+  const AStationCallsign : String;
+  const ARemoteCallsign : String) : TExchTypes;
 begin
   Result.Exch1 := ActiveContest.ExchType1;
   Result.Exch2 := ActiveContest.ExchType2;
@@ -402,7 +415,12 @@ begin
   case AMsg of
     msgCQ: SendText(AStn, 'CQ <my> TEST');
     msgNR: SendText(AStn, '<#>');
-    msgTU: SendText(AStn, 'TU');
+    msgTU:
+      // send station ID after 3 consecutive QSOs (the comparison below uses
+      // 2 since the counter is incremented after 'TU <my>' has been sent).
+      if (RunMode <> rmHST) and (QsoCountSinceStationID >= (STATION_ID_RATE-1))
+        then SendText(AStn, 'TU <my>')
+        else SendText(AStn, 'TU');
     msgMyCall: SendText(AStn, '<my>');
     msgHisCall: SendText(AStn, '<his>');
     msgB4: SendText(AStn, 'QSO B4');
@@ -419,10 +437,10 @@ begin
     msgMyCallNr1: SendText(AStn, '<my> <#>');
     msgMyCallNr2: SendText(AStn, '<my> <my> <#>');
     msgNrQm: SendText(AStn, 'NR?');
-    msgLongCQ: SendText(AStn, 'CQ CQ TEST <my> <my> TEST');  // QrmStation only
+    msgLongCQ: SendText(AStn, 'CQ CQ TEST <my> <my> TEST');
     msgQrl: SendText(AStn, 'QRL?');
     msgQrl2: SendText(AStn, 'QRL?   QRL?');
-    msqQsy: SendText(AStn, '<his>  QSY QSY');
+    msqQsy: SendText(AStn, '<his>  QSY QSY');                // QrmStation only
     msgAgn: SendText(AStn, 'AGN');
   end;
 end;
@@ -436,6 +454,19 @@ end;
 procedure TContest.SendText(const AStn: TStation; const AMsg: string);
 begin
   AStn.SendText(AMsg);  // virtual
+end;
+
+
+{
+  Called after each QSO is completed to reset internal QSO-tracking state logic.
+
+  TContest.Me.HisCall is used by TDxOperator.MsgReceived to determine if the
+  user's call matches the DxStation's assigned callsign. TContest.Me.HisCall
+  is a copy of the call as entered by the user during each QSO.
+}
+procedure TContest.ResetQsoState;
+begin
+  Me.HisCall := '';
 end;
 
 
@@ -619,7 +650,8 @@ begin
     end;
 
   if Qso.Exch1.IsEmpty then Qso.Exch1 := '?';
-  if Qso.Exch2.IsEmpty then Qso.Exch2 := '?';
+  if Qso.Exch2.IsEmpty and (Mainform.RecvExchTypes.Exch2 <> etNaQpNonNaExch2) then
+    Qso.Exch2 := '?';
 end;
 
 
@@ -709,19 +741,25 @@ begin
     begin
     Blk := Me.GetBlock;
     //self-mon. gain
-    Smg := Power(10, (MainForm.VolumeSlider1.Value - 0.75) * 4);
+    Smg := Power(10, (MainForm.VolumeSlider1.Value - 1) * 3);
+
+    // apply linear rolloff towards zero between -57 and -60db (i.e. Smg=0 @ -60db)
+    if MainForm.VolumeSlider1.Value < 0.05 then       // @ -57db, value = 3/60 = 0.05
+      Smg := Smg * MainForm.VolumeSlider1.Value * 60; // 60 dB steps in [-60,0dB]
+
     Rfg := 1;
-    for i:=0 to High(Blk) do
-      if Ini.Qsk
-        then
+    if Ini.Qsk
+      then
+        for i:=0 to High(Blk) do
            begin
-           if Rfg > (1 - Blk[i]/Me.Amplitude)
-             then Rfg := (1 - Blk[i]/Me.Amplitude)
+           if Rfg > (1 - Smg*Blk[i]/Me.Amplitude)
+             then Rfg := (1 - Smg*Blk[i]/Me.Amplitude)
              else Rfg := Rfg * 0.997 + 0.003;
            ReIm.Re[i] := Smg * Blk[i] + Rfg * ReIm.Re[i];
            ReIm.Im[i] := Smg * Blk[i] + Rfg * ReIm.Im[i];
            end
-        else
+      else
+        for i:=0 to High(Blk) do
           begin
           ReIm.Re[i] := Smg * (Blk[i]);
           ReIm.Im[i] := Smg * (Blk[i]);
@@ -752,10 +790,16 @@ begin
       if Stations[i] is TDxStation then
         with Stations[i] as TDxStation do
           if (Oper.State = osDone) and (QsoList <> nil) and
-            ((MyCall = QsoList[High(QsoList)].Call) or
-             (Oper.IsMyCall(QsoList[High(QsoList)].Call, False) = mcAlmost)) then begin
+            (Oper.CallConfidenceCheck(QsoList[High(QsoList)].Call, False)
+              in [mcYes, mcAlmost]) then
+            begin
               // grab Qso's "True" data (e.g. TrueCall, TrueExch1, TrueExch2)
               DataToLastQso; // deletes this TDxStation from Stations[]
+
+              // Tst.Me.HisCall can be cleared now in preparation for the next
+              // QSO. It was last used by TDxOperator.MsgReceived when comparing
+              // the user-entered callsign against the DxStation's callsign.
+              Tst.ResetQsoState;
 
               // rerun error check and update Err string on screen log
               Log.CheckErr;
@@ -772,12 +816,16 @@ begin
               However, this may be a multi-threading issue here because
               this audio thread will be changing things being manipulated
               by the GUI thread. Need more time to think through this one.
+              --> There is no threading issue. The Audio thread is synchronized
+                  with the main thread using a call to TThread.Synchonize() in
+                  the audio thread execute function. See TWaitThread.Execute()
+                  in VCL/SndCustm.pas for more details.
 
               // clear any errors/status from last QSO
               Log.DisplayError('', clDefault);
               Log.SBarUpdateSummary('');
 }
-          end;
+            end;
 
   //show info
   ShowRate;
@@ -866,6 +914,11 @@ var
   z: integer;
   Dx : integer;
 begin
+  // reset Station ID counter after sending a CQ or 3 consecutive QSOs
+  if (msgCQ in Me.Msg) or
+     ((msgTU in Me.Msg) and (QsoCountSinceStationID >= STATION_ID_RATE)) then
+    OnStationIDSent;
+
   //the stations heard my CQ and want to call
   if (not (RunMode in [rmSingle, RmHst])) then
     if (msgCQ in Me.Msg) or
@@ -890,6 +943,11 @@ begin
              end;
           end;
        end;
+
+  //update caller's Confidence metric
+  if msgHisCall in Tst.Me.Msg then
+    Stations.FindBestMatches(Tst.Me.HisCall);
+
   //tell callers that I finished sending
   for i:=Stations.Count-1 downto 0 do
     Stations[i].ProcessEvent(evMeFinished);
@@ -903,6 +961,21 @@ begin
   //tell callers that I started sending
   for i:=Stations.Count-1 downto 0 do
     Stations[i].ProcessEvent(evMeStarted);
+end;
+
+
+// Called by Log.SaveQso after saving a QSO into the log.
+procedure TContest.OnSaveQsoComplete;
+begin
+  // send station ID after 3 consecutive QSOs
+  Inc(QsoCountSinceStationID);
+end;
+
+
+// Called by TContest.OnMeFinishedSending after sending 'CQ <my>' or 'TU <my>'.
+procedure TContest.OnStationIDSent;
+begin
+  QsoCountSinceStationID := 0;
 end;
 
 
