@@ -305,7 +305,6 @@ var
   ShowCheckSection: integer=50;
   ShowExchangeSummary: integer = 1; // 0=Off, 1=Above Field, 2=Status Bar
   AudioDevice: string = '';
-  MonLevel: integer;
 
   Duration: integer = 30;
   Durations: array[0..2] of integer = (30, 7, 60); // 0=Practice, 1=Training, 2=Competition

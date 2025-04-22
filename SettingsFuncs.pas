@@ -10,8 +10,9 @@ uses inifiles, System.SysUtils, System.Classes, System.StrUtils,
 type
   TSettgsFuncs = class
     procedure LoadSettingsFromIni;
+    procedure UpdateMonLevelCaption;
     procedure LoadAudioComboBox;
-    procedure WriteDirtySettingsToRecord(Sender: TObject);
+    procedure WriteDirtySettingsToRecord(Sender: TObject; AForce: Boolean = false);
     procedure SerialNRCustomRangeClick;
     procedure UpdSerialNR(V: integer);
     procedure UpdSerialNRCustomRange(const ARange: string);
@@ -120,8 +121,8 @@ begin
     trkBarRxBw.Position := round((ini.Bandwidth - 100)/50);
     lblRxBwHzNo.Caption := inttostr(ini.Bandwidth);
 
-    trkBarMonLevel.Position := Round(MainForm.VolumeSlider1.Value*100);
-    lblMonLevelNo.Caption := inttostr(round(80*(MainForm.VolumeSlider1.Value - 0.75)));
+    trkBarMonLevel.Position := Round(MainForm.VolumeSlider1.dB);
+    UpdateMonLevelCaption;
 
     spinSettngActivity.Value := Ini.Activity;
     spinSettngDuration.Value := Ini.Duration;
@@ -135,8 +136,25 @@ begin
     radioSetTrn3CharWrld.Checked := rdoTrain3W;
     radioSetTrn4Char.Checked := rdoTrain4C;
     radioSetTrn5Char.Checked := rdoTrain5C;
+
+    WriteDirtySettingsToRecord(Self, {AForce=}True);
   end;
 end;
+
+procedure TSettgsFuncs.UpdateMonLevelCaption;
+const
+  HintStep : integer = 3;   // Round hint to 3dB steps
+begin
+  var pos: Integer := frmSettings.trkBarMonLevel.Position;
+  var dB : Integer := round(pos/HintStep)*HintStep;
+  if dB >= frmSettings.trkBarMonLevel.Min + HintStep then
+    frmSettings.lblMonLevelNo.Caption := IntToStr(dB)
+  else if pos > frmSettings.trkBarMonLevel.Min then
+    frmSettings.lblMonLevelNo.Caption := IntToStr(pos)
+  else
+    frmSettings.lblMonLevelNo.Caption := 'Off';
+end;
+
 
 procedure TSettgsFuncs.LoadAudioComboBox;
 var
@@ -166,11 +184,11 @@ begin
   end;
 end;
 
-procedure TSettgsFuncs.WriteDirtySettingsToRecord(Sender: TObject);
+procedure TSettgsFuncs.WriteDirtySettingsToRecord(Sender: TObject; AForce: Boolean);
 var
   i : integer;
 begin
-  if frmSettings.Showing then    //suppress writing to record on initial startup
+  if frmSettings.Showing or AForce then    //suppress writing to record on initial startup
   begin                          //when Settings form is hidden
     with SettgsTentv do
     begin
@@ -240,7 +258,7 @@ begin
     CheckBox2.Checked := Ini.Qsb;
     CheckBox5.Checked := Ini.Flutter;
     CheckBox6.Checked := Ini.Lids;
-    // To be done: Mon Level
+    VolumeSlider1.Db := Ini.MonLevel;
     SpinEdit3.Value := Ini.Activity;
   end;
 end;

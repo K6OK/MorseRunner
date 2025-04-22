@@ -202,8 +202,10 @@ object frmSettings: TfrmSettings
           Top = 48
           Width = 150
           Height = 33
-          Max = 27
-          Frequency = 27
+          LineSize = 3
+          Max = 0
+          Min = -60
+          Frequency = 10
           ShowSelRange = False
           TabOrder = 1
           OnChange = trkBarMonLevelTracking
