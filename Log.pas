@@ -886,7 +886,7 @@ begin
     for i:=Tst.Stations.Count-1 downto 0 do
       if Tst.Stations[i] is TDxStation then
         with Tst.Stations[i] as TDxStation do
-          if ((MyCall = Qso.Call) or (Oper.IsMyCall(Qso.Call, False) = mcAlmost)) then
+          if Oper.CallConfidenceCheck(Qso.Call, False) in [mcYes, mcAlmost] then
           begin
             Qso.TrueWpm := WpmAsText();
             Break;
@@ -897,9 +897,10 @@ begin
       if Tst.Stations[i] is TDxStation then
         with Tst.Stations[i] as TDxStation do
           if (Oper.State = osDone) and
-             ((MyCall = Qso.Call) or (Oper.IsMyCall(Qso.Call, False) = mcAlmost)) then
+            (Oper.CallConfidenceCheck(Qso.Call, False) in [mcYes, mcAlmost]) then
             begin
               DataToLastQso; //grab "True" data and delete this dx station!
+              Tst.ResetQsoState;
               Break;
             end;
 
@@ -920,6 +921,9 @@ begin
   if (Tst.Me.SentExchTypes.Exch1 in [etSSNrPrecedence]) or
      (Tst.Me.SentExchTypes.Exch2 in [etSerialNr]) then
     Inc(Tst.Me.NR);
+
+  // Notify SaveQso is complete
+  Tst.OnSaveQsoComplete;
 end;
 
 
@@ -1132,6 +1136,15 @@ procedure TQso.CheckExch2(var ACorrections: TStringList);
         ACorrections.Add(TrueExch2);
     leCHK:
         ACorrections.Add(format('%.02d', [TrueCheck]));
+    leST:
+      // special case for NAQP - Non-NA Stations do not send State. Return a
+      // space (' ') to avoid printing a confusing "" in the error log.
+      if (SimContest = scNaQP) and
+        (Mainform.RecvExchTypes.Exch2 = etNaQpNonNaExch2) and
+        TrueExch2.IsEmpty then
+        ACorrections.Add(' ')
+      else
+        ACorrections.Add(TrueExch2);
     else
       ACorrections.Add(TrueExch2);
   end;
