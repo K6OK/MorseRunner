@@ -18,7 +18,7 @@ object frmSettings: TfrmSettings
     Top = 0
     Width = 624
     Height = 391
-    ActivePage = tabTrain
+    ActivePage = tabGeneral
     Align = alClient
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
