@@ -305,7 +305,7 @@ var
   ShowCheckSection: integer=50;
   ShowExchangeSummary: integer = 1; // 0=Off, 1=Above Field, 2=Status Bar
   AudioDevice: string = '';
-  MonLevel: integer;
+
 
   Duration: integer = 30;
   Durations: array[0..2] of integer = (30, 7, 60); // 0=Practice, 1=Training, 2=Competition
@@ -316,7 +316,7 @@ var
   HiScore: integer;
   CompDuration: integer = 60;
 
-  SelfMonVolume: Integer = 0;
+  MonLevel: Integer = 0;             // Self Monitor Level in dB; range [-60,0]
   SaveWav: boolean = false;
 
 
@@ -538,8 +538,9 @@ begin
       // [Station]
       V := ReadInteger(SEC_STN, 'SelfMonVolume', 0);
       V := max(-60, min(0, V));
-      SelfMonVolume := V;
-      MainForm.VolumeSlider1.Db := SelfMonVolume;
+      MonLevel := V;
+      MainForm.VolumeSlider1.Db := MonLevel;
+
       SaveWav := ReadBool(SEC_STN, 'SaveWav', SaveWav);
 
       // [Settings]
@@ -664,7 +665,7 @@ begin
       WriteInteger(SEC_TST, 'CompetitionDuration', CompDuration);
 
       // [Station]
-      WriteInteger(SEC_STN, 'SelfMonVolume', SelfMonVolume);
+      WriteInteger(SEC_STN, 'SelfMonVolume', MonLevel);
       WriteBool(SEC_STN, 'SaveWav', SaveWav);
 
       // [Settings]

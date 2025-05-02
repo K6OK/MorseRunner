@@ -251,12 +251,8 @@ begin
 end;
 
 procedure TfrmSettings.trkBarMonLevelTracking(Sender: TObject);  // 3dB steps
-var
-  pos: integer;
 begin
-  pos := (trkBarMonLevel.Position*3)-60;
-  if (pos>20) then pos := 20;
-  lblMonLevelNo.Caption := InttoStr(pos);
+  SettgsFuncs.UpdateMonLevelCaption;
   SettgsFuncs.WriteDirtySettingsToRecord(Sender);
 end;
 

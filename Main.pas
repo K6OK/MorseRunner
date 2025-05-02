@@ -2483,7 +2483,7 @@ end;
 }
 procedure TMainForm.VolumeSlider1Change(Sender: TObject);
 begin
-  Ini.SelfMonVolume := round(VolumeSlider1.Db);
+  Ini.MonLevel := round(VolumeSlider1.Db);
 end;
 
 
