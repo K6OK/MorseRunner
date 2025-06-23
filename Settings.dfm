@@ -28,8 +28,6 @@ object frmSettings: TfrmSettings
     ParentFont = False
     Style = tsFlatButtons
     TabOrder = 0
-    ExplicitWidth = 620
-    ExplicitHeight = 390
     object tabGeneral: TTabSheet
       Caption = 'General'
       object boxMyStation: TGroupBox
@@ -1148,8 +1146,6 @@ object frmSettings: TfrmSettings
     Height = 50
     Align = alBottom
     TabOrder = 1
-    ExplicitTop = 390
-    ExplicitWidth = 620
     object btnSettingsCancel: TButton
       Left = 208
       Top = 16

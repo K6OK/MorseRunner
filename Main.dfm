@@ -5909,8 +5909,6 @@ object MainForm: TMainForm
     BevelInner = bvRaised
     BevelOuter = bvLowered
     TabOrder = 0
-    ExplicitTop = 454
-    ExplicitWidth = 788
     object SpeedButton4: TSpeedButton
       Tag = 1
       Left = 6
@@ -6192,7 +6190,6 @@ object MainForm: TMainForm
         TabOrder = 0
         TabStop = False
         ViewStyle = vsReport
-        ExplicitTop = -27
       end
     end
     object Panel2: TPanel
@@ -6224,8 +6221,6 @@ object MainForm: TMainForm
     Color = clWhite
     ParentBackground = False
     TabOrder = 1
-    ExplicitWidth = 576
-    ExplicitHeight = 315
     object RichEdit1: TRichEdit
       Left = 0
       Top = 271
@@ -6244,8 +6239,6 @@ object MainForm: TMainForm
       ScrollBars = ssVertical
       TabOrder = 1
       Visible = False
-      ExplicitTop = 270
-      ExplicitWidth = 572
     end
     object ListView2: TListView
       Left = 0
@@ -6302,7 +6295,6 @@ object MainForm: TMainForm
       ViewStyle = vsReport
       OnCustomDrawSubItem = ListView2CustomDrawSubItem
       OnSelectItem = ListView2SelectItem
-      ExplicitWidth = 572
     end
     object sbar: TPanel
       Left = 0
@@ -6315,8 +6307,6 @@ object MainForm: TMainForm
       ParentBackground = False
       TabOrder = 2
       Visible = False
-      ExplicitTop = 248
-      ExplicitWidth = 572
     end
   end
   object Panel9: TPanel
@@ -6327,8 +6317,6 @@ object MainForm: TMainForm
     Align = alRight
     BevelOuter = bvNone
     TabOrder = 2
-    ExplicitLeft = 576
-    ExplicitHeight = 315
     object spdbtnRun: TSpeedButton
       Left = 54
       Top = 273
@@ -6553,6 +6541,7 @@ object MainForm: TMainForm
         Height = 20
         Hint = '-15.0 dB'
         ShowHint = True
+        HintStep = 0
         Margin = 5
         Value = 0.750000000000000000
         Overloaded = False
@@ -6668,8 +6657,6 @@ object MainForm: TMainForm
     BevelInner = bvRaised
     BevelOuter = bvLowered
     TabOrder = 3
-    ExplicitTop = 389
-    ExplicitWidth = 788
     object Label1: TLabel
       Left = 74
       Top = 5
@@ -6869,8 +6856,6 @@ object MainForm: TMainForm
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 4
-    ExplicitTop = 374
-    ExplicitWidth = 788
     object labelStatus: TLabel
       Left = 648
       Top = 1
@@ -6893,7 +6878,6 @@ object MainForm: TMainForm
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 5
-    ExplicitWidth = 788
     object Label10: TLabel
       Left = 262
       Top = 8

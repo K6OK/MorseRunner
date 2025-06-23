@@ -1803,19 +1803,25 @@ const
     Msg='                       First Time?'#13 +
         'Welcome to Morse Runner Community Edition'#13 +
         ''#13 +
-        'Initial Setup:'#13 +
-        '1) Select the Contest you wish to operate.'#13 +
-        '2) Type the exchange you wish to send.'#13 +
-        '3) In the station section replace VE3NEA with your call.'#13 +
-        '4) Select your CW Speed, Tone, and Bandwidth.'#13 +
-        '5) Turn on Band Conditions for realistic hardships.'#13 +
-        '6) Activity is the average amount of responses you want per CQ.'#13 +
+        'Initial Setup, starting from top left:'#13 +
+        '1) Select the Activity type. ' +#39+ 'Practice' +#39+ ' is for simulating'#13 +
+        '    a contest.' +#39+ 'Training' +#39+ ' is for students who are'#13 +
+        '    learning CW.'#13 +
+        '2) Select the Contest you wish to operate.'#13 +
+        '3) Select the Mode.'#13 +
+        '    - Pile up. You' +#39+ 'll call CQ and one or more stations will reply.'#13 +
+        '    - Single Calls - Work one station at a time.'#13 +
+        '4) Duration: enter how many minutes for your session.'#13 +
+        '5) My Station, Call: replace VE3NEA with your call.'#13 +
+        '6) Select your CW Speed, Tone, and Bandwidth.'#13 +
+        '7) Turn on Band Conditions for realistic hardships.'#13 +
+        '8) Activity is the average amount of responses you want per CQ.'#13 +
         '    So if no one responds, you might get twice the number the'#13 +
         '    following time. This is a pile up trainer after all.'#13 +
-        '7) Select the time limit.'#13 +
-        '8) The Run button has a drop down.'#13 +
-        '    - Pile up - Hit F1 to call CQ. Get ready for pileups!'#13 +
-        '    - Single Calls - Work one station at a time with no pileups.'#13 +
+        '9) Click Run to start.'#13 +
+        ' '#13 +
+        'Additional settings and preferences can be set by clicking'#13 +
+        '    Settings/Settings from the top menu.'#13 +
         'More detailed help is in the readme, but this gets you started.'#13 +
         'Have Fun!'#13 +
         ''#13 +
