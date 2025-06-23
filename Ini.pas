@@ -306,7 +306,6 @@ var
   ShowExchangeSummary: integer = 1; // 0=Off, 1=Above Field, 2=Status Bar
   AudioDevice: string = '';
 
-
   Duration: integer = 30;
   Durations: array[0..2] of integer = (30, 7, 60); // 0=Practice, 1=Training, 2=Competition
 
@@ -540,7 +539,6 @@ begin
       V := max(-60, min(0, V));
       MonLevel := V;
       MainForm.VolumeSlider1.Db := MonLevel;
-
       SaveWav := ReadBool(SEC_STN, 'SaveWav', SaveWav);
 
       // [Settings]

@@ -155,6 +155,7 @@ begin
     frmSettings.lblMonLevelNo.Caption := 'Off';
 end;
 
+
 procedure TSettgsFuncs.LoadAudioComboBox;
 var
   DeviceCount: Integer;
